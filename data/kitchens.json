@@ -1,0 +1,37 @@
+[
+  {
+    "kitchen_id": "K001",
+    "name": "IIT Delhi Central Kitchen",
+    "location": "IIT Delhi, Hauz Khas, New Delhi",
+    "lat": 28.5450,
+    "lon": 77.1926
+  },
+  {
+    "kitchen_id": "K002",
+    "name": "AIIMS Hospital Canteen",
+    "location": "AIIMS, Ansari Nagar, New Delhi",
+    "lat": 28.5672,
+    "lon": 77.2100
+  },
+  {
+    "kitchen_id": "K003",
+    "name": "DU North Campus Mess",
+    "location": "University of Delhi, North Campus, Delhi",
+    "lat": 28.6889,
+    "lon": 77.2090
+  },
+  {
+    "kitchen_id": "K004",
+    "name": "Jawaharlal Nehru University Mess",
+    "location": "JNU, New Mehrauli Road, New Delhi",
+    "lat": 28.5400,
+    "lon": 77.1675
+  },
+  {
+    "kitchen_id": "K005",
+    "name": "IGI Airport Terminal Kitchen",
+    "location": "IGI Airport, Palam, New Delhi",
+    "lat": 28.5562,
+    "lon": 77.1000
+  }
+]

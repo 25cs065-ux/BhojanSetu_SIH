@@ -1,0 +1,57 @@
+[
+  {
+    "ngo_id": "N001",
+    "name": "Feeding India Foundation",
+    "location": "Karol Bagh, New Delhi",
+    "lat": 28.6520,
+    "lon": 77.1900,
+    "capacity_kg": 200,
+    "status": "active",
+    "food_preferences": ["cooked", "raw"],
+    "contact": "feeding@india.org"
+  },
+  {
+    "ngo_id": "N002",
+    "name": "Delhi Food Bank",
+    "location": "Lajpat Nagar, New Delhi",
+    "lat": 28.5700,
+    "lon": 77.2400,
+    "capacity_kg": 150,
+    "status": "active",
+    "food_preferences": ["cooked"],
+    "contact": "info@delhifoodbank.org"
+  },
+  {
+    "ngo_id": "N003",
+    "name": "Robin Hood Army",
+    "location": "Connaught Place, New Delhi",
+    "lat": 28.6315,
+    "lon": 77.2167,
+    "capacity_kg": 100,
+    "status": "active",
+    "food_preferences": ["cooked", "raw"],
+    "contact": "delhi@robinhoodarmy.com"
+  },
+  {
+    "ngo_id": "N004",
+    "name": "Sikh Aid Society",
+    "location": "Tilak Nagar, New Delhi",
+    "lat": 28.6357,
+    "lon": 77.0930,
+    "capacity_kg": 300,
+    "status": "active",
+    "food_preferences": ["cooked", "raw"],
+    "contact": "aid@sikhaid.org"
+  },
+  {
+    "ngo_id": "N005",
+    "name": "Nutritious Kids Foundation",
+    "location": "Rohini, New Delhi",
+    "lat": 28.7500,
+    "lon": 77.0700,
+    "capacity_kg": 80,
+    "status": "inactive",
+    "food_preferences": ["cooked"],
+    "contact": "kids@nutritious.org"
+  }
+]
