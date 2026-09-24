@@ -1,0 +1,19 @@
+# BhojanSetu — Module 5 Dependencies
+# Features 7, 8, 9, 10
+
+# PDF generation (Feature 9)
+reportlab>=4.0.0
+
+# Data manipulation / ML (Features 8, 10)
+pandas>=2.0.0
+numpy>=1.24.0
+scikit-learn>=1.3.0
+
+# Optional: Time-series forecasting (Feature 10 — Prophet explainability)
+# prophet>=1.1.0
+
+# Optional: Advanced explainability
+# shap>=0.44.0
+
+# Testing
+pytest>=7.0.0
