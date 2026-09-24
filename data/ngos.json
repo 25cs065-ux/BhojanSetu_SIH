@@ -1,0 +1,50 @@
+[
+  {
+    "id": "NGO001",
+    "name": "Asha Food Relief",
+    "lat": 19.0760,
+    "lon": 72.8777,
+    "capacity_kg": 100,
+    "beneficiaries": 200,
+    "urgency": 3,
+    "food_preference": "vegetarian",
+    "contact": "asha@example.org"
+  },
+  {
+    "id": "NGO002",
+    "name": "Hope Shelter",
+    "lat": 19.1136,
+    "lon": 72.8697,
+    "capacity_kg": 60,
+    "beneficiaries": 120,
+    "urgency": 5,
+    "food_preference": "any",
+    "contact": "hope@example.org"
+  },
+  {
+    "id": "NGO003",
+    "name": "Seva Nutrition Center",
+    "lat": 19.0330,
+    "lon": 73.0297,
+    "capacity_kg": 40,
+    "beneficiaries": 80,
+    "urgency": 2,
+    "food_preference": "vegetarian",
+    "contact": "seva@example.org"
+  },
+  {
+    "id": "NGO004",
+    "name": "Arogya Meals",
+    "lat": 18.9220,
+    "lon": 72.8347,
+    "capacity_kg": 150,
+    "beneficiaries": 300,
+    "urgency": 4,
+    "food_preference": "any",
+    "contact": "arogya@example.org"
+  },
+  {
+    "id": "NGO005",
+    "name": "No Coords NGO"
+  }
+]

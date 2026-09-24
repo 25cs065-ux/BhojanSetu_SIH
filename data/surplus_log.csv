@@ -1,0 +1,6 @@
+surplus_id,kitchen_id,food_name,quantity_kg,prepared_at,expires_at,food_type
+S001,K001,Dal Makhani,80,2024-01-15 12:00,2024-01-15 20:00,vegetarian
+S002,K001,Chicken Biryani,30,2024-01-15 13:00,2024-01-15 21:00,non-vegetarian
+S003,K002,Paneer Butter Masala,50,2024-01-15 14:00,2024-01-15 22:00,vegetarian
+S004,K003,Mixed Vegetable Curry,10,2024-01-15 15:00,2024-01-15 23:00,vegetarian
+S005,K001,Gulab Jamun,5,2024-01-15 16:00,2024-01-16 08:00,vegetarian

@@ -1,0 +1,27 @@
+[
+  {
+    "id": "K001",
+    "name": "Mumbai Central Kitchen",
+    "lat": 19.0760,
+    "lon": 72.8777,
+    "contact": "central@kitchen.in"
+  },
+  {
+    "id": "K002",
+    "name": "Andheri Cloud Kitchen",
+    "lat": 19.1136,
+    "lon": 72.8697,
+    "contact": "andheri@kitchen.in"
+  },
+  {
+    "id": "K003",
+    "name": "Thane Community Kitchen",
+    "lat": 19.2183,
+    "lon": 72.9781,
+    "contact": "thane@kitchen.in"
+  },
+  {
+    "id": "K004",
+    "name": "No Coords Kitchen"
+  }
+]
