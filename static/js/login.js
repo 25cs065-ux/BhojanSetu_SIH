@@ -1,8 +1,8 @@
 /* ============================================================
    BhojanSetu — login.js
    Handles login, signup, and OTP form interactions.
-   All form submissions target Flask auth routes.
-   ⚠ Backend integration pending: auth routes not yet wired.
+   All form submissions target live Flask auth routes:
+     POST /auth/login, POST /auth/signup, POST /auth/verify-otp
    ============================================================ */
 
 'use strict';
@@ -59,7 +59,6 @@ if (loginForm) {
     _setLoading('loginBtn', 'loginBtnText', 'loginSpinner', true);
 
     try {
-      /* ⚠ PENDING: POST /auth/login — submitting form natively when route exists */
       loginForm.submit();
     } catch (err) {
       _setLoading('loginBtn', 'loginBtnText', 'loginSpinner', false);
@@ -104,7 +103,7 @@ if (signupForm) {
     if (!valid) { e.preventDefault(); return; }
 
     _setLoading('signupBtn', 'signupBtnText', 'signupSpinner', true);
-    // Form submits natively to POST /auth/signup — ⚠ PENDING backend route
+    // Form submits natively to POST /auth/signup
   });
 }
 
@@ -121,6 +120,6 @@ if (otpForm) {
       return;
     }
     _setLoading('otpBtn', 'otpBtnText', 'otpSpinner', true);
-    // Form submits natively to POST /auth/verify-otp — ⚠ PENDING backend route
+    // Form submits natively to POST /auth/verify-otp
   });
 }

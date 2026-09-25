@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Admin Dashboard — BhojanSetu{% endblock %}
-{% block page_title %}Admin Dashboard{% endblock %}
+{% block page_title %}Admin Overview{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -11,112 +11,43 @@
 <!-- ── KPI Row ──────────────────────────────────────────── -->
 <div class="kpi-grid">
   <div class="kpi-card">
+    <div class="kpi-icon kpi-icon-blue">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    </div>
     <div class="kpi-label">Total Kitchens</div>
     <div class="kpi-value" id="kpiKitchens">—</div>
     <div class="kpi-sub">registered</div>
   </div>
   <div class="kpi-card">
+    <div class="kpi-icon kpi-icon-orange">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </div>
     <div class="kpi-label">Active NGOs</div>
     <div class="kpi-value" id="kpiNgos">—</div>
     <div class="kpi-sub">in system</div>
   </div>
   <div class="kpi-card">
+    <div class="kpi-icon kpi-icon-green">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    </div>
     <div class="kpi-label">Total Matches</div>
     <div class="kpi-value" id="kpiTotalMatches">—</div>
     <div class="kpi-sub">all time</div>
   </div>
   <div class="kpi-card">
+    <div class="kpi-icon kpi-icon-purple">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+    </div>
     <div class="kpi-label">Surplus Logged</div>
     <div class="kpi-value" id="kpiTotalSurplus">—</div>
     <div class="kpi-sub">kg total</div>
   </div>
 </div>
 
-<div class="grid-2 section-gap">
-  <!-- ── Kitchens Table ─────────────────────────────────── -->
-  <div class="card">
-    <div class="card-header">
-      <h3>Registered Kitchens</h3>
-      <div class="card-header-actions">
-        <button class="btn btn-secondary btn-sm" onclick="BS.loadAdminKitchens()">Refresh</button>
-      </div>
-    </div>
-    <div id="kitchensContainer">
-      <div class="loading-block" id="kitchensLoading">
-        <span class="spinner spinner-dark"></span> Loading…
-      </div>
-      <div class="empty-state" id="kitchensEmpty" style="display:none;">
-        <div class="empty-state-title">No kitchens found</div>
-      </div>
-      <div class="alert alert-error" id="kitchensError" style="display:none; margin:1rem;"></div>
-      <div class="table-wrap" id="kitchensTable" style="display:none;">
-        <table class="data-table">
-          <thead><tr><th>ID</th><th>Name</th><th>Location</th></tr></thead>
-          <tbody id="kitchensBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── NGOs Table ────────────────────────────────────── -->
-  <div class="card">
-    <div class="card-header">
-      <h3>NGOs / Recipients</h3>
-      <div class="card-header-actions">
-        <button class="btn btn-secondary btn-sm" onclick="BS.loadAdminNgos()">Refresh</button>
-      </div>
-    </div>
-    <div id="ngosContainer">
-      <div class="loading-block" id="ngosLoading">
-        <span class="spinner spinner-dark"></span> Loading…
-      </div>
-      <div class="empty-state" id="ngosEmpty" style="display:none;">
-        <div class="empty-state-title">No NGOs found</div>
-      </div>
-      <div class="alert alert-error" id="ngosError" style="display:none; margin:1rem;"></div>
-      <div class="table-wrap" id="ngosTable" style="display:none;">
-        <table class="data-table">
-          <thead><tr><th>ID</th><th>Name</th><th>Capacity (kg)</th><th>Status</th></tr></thead>
-          <tbody id="ngosBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ── All Matches ────────────────────────────────────────── -->
-<div class="card section-gap">
-  <div class="card-header">
-    <h3>All Matches</h3>
-    <div class="card-header-actions">
-      <button class="btn btn-secondary btn-sm" onclick="BS.loadAdminMatches()">Refresh</button>
-    </div>
-  </div>
-  <div id="allMatchesContainer">
-    <div class="loading-block" id="allMatchesLoading">
-      <span class="spinner spinner-dark"></span> Loading…
-    </div>
-    <div class="empty-state" id="allMatchesEmpty" style="display:none;">
-      <div class="empty-state-title">No matches recorded yet</div>
-    </div>
-    <div class="alert alert-error" id="allMatchesError" style="display:none; margin:1rem;"></div>
-    <div class="table-wrap" id="allMatchesTable" style="display:none;">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Match ID</th><th>Kitchen</th><th>NGO</th><th>Food Item</th>
-            <th>Qty (kg)</th><th>Score</th><th>Status</th><th>Date</th>
-          </tr>
-        </thead>
-        <tbody id="allMatchesBody"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
 <!-- ── Sustainability Summary ─────────────────────────────── -->
 <div class="card section-gap">
   <div class="card-header">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
     <h3>Sustainability Summary</h3>
     <div class="card-header-actions">
       <a href="{{ url_for('sustainability_report') }}" class="btn btn-secondary btn-sm">Full Report →</a>
@@ -128,7 +59,7 @@
     </div>
     <div class="alert alert-error" id="adminSustainError" style="display:none;"></div>
     <div id="adminSustainData" style="display:none;">
-      <div class="kpi-grid" style="grid-template-columns: repeat(3,1fr); margin:0;">
+      <div class="kpi-grid" style="margin:0;">
         <div class="kpi-card">
           <div class="kpi-label">Food Redistributed</div>
           <div class="kpi-value" id="adminRedistributed">—</div>
@@ -145,7 +76,93 @@
           <div class="kpi-sub">total</div>
         </div>
       </div>
-      <p class="footnote">CO₂e and water values are ESTIMATED. Source: Poore &amp; Nemecek 2018, median emission factor 1.6 kg CO₂e/kg food.</p>
+      <p class="footnote" style="margin-top:var(--space-4);">CO₂e and water values are ESTIMATED. Source: Poore &amp; Nemecek 2018, median emission factor 1.6 kg CO₂e/kg food.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Kitchens + NGOs tables ─────────────────────────────── -->
+<div class="grid-2 section-gap">
+  <!-- Kitchens Table -->
+  <div class="card">
+    <div class="card-header">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <h3>Registered Kitchens</h3>
+      <div class="card-header-actions">
+        <button class="btn btn-secondary btn-sm" onclick="BS.loadAdminKitchens()">Refresh</button>
+      </div>
+    </div>
+    <div id="kitchensContainer">
+      <div class="loading-block" id="kitchensLoading">
+        <span class="spinner spinner-dark"></span> Loading…
+      </div>
+      <div class="empty-state" id="kitchensEmpty" style="display:none;">
+        <div class="empty-state-title">No kitchens found</div>
+      </div>
+      <div class="alert alert-error" id="kitchensError" style="display:none; margin:var(--space-4);"></div>
+      <div class="table-wrap" id="kitchensTable" style="display:none;">
+        <table class="data-table">
+          <thead><tr><th>ID</th><th>Name</th><th>Location</th></tr></thead>
+          <tbody id="kitchensBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- NGOs Table -->
+  <div class="card">
+    <div class="card-header">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      <h3>NGOs / Recipients</h3>
+      <div class="card-header-actions">
+        <button class="btn btn-secondary btn-sm" onclick="BS.loadAdminNgos()">Refresh</button>
+      </div>
+    </div>
+    <div id="ngosContainer">
+      <div class="loading-block" id="ngosLoading">
+        <span class="spinner spinner-dark"></span> Loading…
+      </div>
+      <div class="empty-state" id="ngosEmpty" style="display:none;">
+        <div class="empty-state-title">No NGOs found</div>
+      </div>
+      <div class="alert alert-error" id="ngosError" style="display:none; margin:var(--space-4);"></div>
+      <div class="table-wrap" id="ngosTable" style="display:none;">
+        <table class="data-table">
+          <thead><tr><th>ID</th><th>Name</th><th>Capacity (kg)</th><th>Status</th></tr></thead>
+          <tbody id="ngosBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── All Matches ─────────────────────────────────────────── -->
+<div class="card section-gap">
+  <div class="card-header">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    <h3>All Matches</h3>
+    <div class="card-header-actions">
+      <button class="btn btn-secondary btn-sm" onclick="BS.loadAdminMatches()">Refresh</button>
+    </div>
+  </div>
+  <div id="allMatchesContainer">
+    <div class="loading-block" id="allMatchesLoading">
+      <span class="spinner spinner-dark"></span> Loading…
+    </div>
+    <div class="empty-state" id="allMatchesEmpty" style="display:none;">
+      <div class="empty-state-title">No matches recorded yet</div>
+    </div>
+    <div class="alert alert-error" id="allMatchesError" style="display:none; margin:var(--space-4);"></div>
+    <div class="table-wrap" id="allMatchesTable" style="display:none;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Match ID</th><th>Kitchen</th><th>NGO</th><th>Food Item</th>
+            <th>Qty (kg)</th><th>Score</th><th>Status</th><th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="allMatchesBody"></tbody>
+      </table>
     </div>
   </div>
 </div>

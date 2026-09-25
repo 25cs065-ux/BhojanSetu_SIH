@@ -1,10 +1,8 @@
 /* ============================================================
    BhojanSetu — dashboard.js
    Central API layer for all dashboard interactions.
-   All fetch() calls target Flask API routes.
-   ⚠ All endpoints are PENDING backend wiring.
-   No data is fabricated. Empty/error states shown when API
-   is unavailable.
+   All fetch() calls target live Flask API routes.
+   Empty/error states shown when API is unavailable.
    ============================================================ */
 
 'use strict';
@@ -60,14 +58,36 @@ const BS = (function () {
   }
   function hideErr(id) { hide(id); }
 
-  /** Pending-API handler: show error state and stop spinners */
-  function _apiPending(context) {
-    console.warn(`[BhojanSetu] API call "${context}" — backend not yet wired.`);
+  /* ─── BUG-07 FIX: inline toast instead of alert() ─────────
+     Shows a self-dismissing inline notification in a container.
+     If containerId is omitted, appends near the top of main-content.
+  ────────────────────────────────────────────────────────── */
+  function showToast(msg, type = 'info', containerId = null) {
+    const typeClass = type === 'success' ? 'alert-success'
+                    : type === 'error'   ? 'alert-error'
+                    : 'alert-info';
+    const div = document.createElement('div');
+    div.className = `alert ${typeClass}`;
+    div.setAttribute('role', 'alert');
+    div.style.cssText = 'margin-bottom:var(--space-4); animation:none;';
+    div.innerHTML = `${esc(msg)}
+      <button class="alert-close" aria-label="Close" style="margin-left:auto;"
+              onclick="this.parentElement.remove()">&times;</button>`;
+
+    let target = containerId ? document.getElementById(containerId) : null;
+    if (!target) {
+      target = document.querySelector('.main-content');
+    }
+    if (target) {
+      target.prepend(div);
+      // Auto-dismiss after 5 seconds
+      setTimeout(() => { if (div.parentElement) div.remove(); }, 5000);
+    }
   }
 
   /* ──────────────────────────────────────────────────────────
      Generic fetch wrapper
-     Returns { ok, data, error }
+     Returns { ok, data, error, status }
   ─────────────────────────────────────────────────────────── */
   async function apiFetch(url, options = {}) {
     try {
@@ -75,14 +95,18 @@ const BS = (function () {
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         ...options,
       });
-      if (response.status === 204) return { ok: true, data: null };
+      if (response.status === 204) return { ok: true, data: null, status: 204 };
       const data = await response.json();
       if (!response.ok) {
-        return { ok: false, error: data.message || data.error || `HTTP ${response.status}` };
+        return {
+          ok: false,
+          error: data.message || data.error || `HTTP ${response.status}`,
+          status: response.status,
+        };
       }
-      return { ok: true, data };
+      return { ok: true, data, status: response.status };
     } catch (err) {
-      return { ok: false, error: 'Network error — could not reach the server.' };
+      return { ok: false, error: 'Network error — could not reach the server.', status: 0 };
     }
   }
 
@@ -90,10 +114,8 @@ const BS = (function () {
      Tab switching (surplus exchange page)
   ─────────────────────────────────────────────────────────── */
   function switchTab(btn, panelId) {
-    // Deactivate all tabs
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    // Activate selected
     btn.classList.add('active');
     const panel = document.getElementById(panelId);
     if (panel) panel.classList.add('active');
@@ -101,19 +123,17 @@ const BS = (function () {
 
   /* ══════════════════════════════════════════════════════════
      FEATURE 1 + 2: DEMAND FORECAST + SURPLUS PREDICTION
-     Endpoint: GET /api/demand?center_id=&meal_id=&weeks=
-     Response contract: { forecast: [...], surplus_summary: {...} }
-     ⚠ PENDING backend wiring
+     Endpoint: GET /api/demand?center_id=&meal_id=&weeks=&prepared_qty=
+     Response: { forecast: [...], surplus_summary: {...}, explanation: {...} }
   ══════════════════════════════════════════════════════════ */
-    async function runForecast() {
-    const mealSel    = document.getElementById('forecastMeal');
-    const weeksSel    = document.getElementById('forecastWeeks');
-    const prepQtyEl   = document.getElementById('preparedQty');
-    const mealVal     = mealSel?.value;
-    const weeksVal    = weeksSel?.value || '7';
-    const prepQtyRaw  = prepQtyEl?.value || '';
+  async function runForecast() {
+    const mealSel   = document.getElementById('forecastMeal');
+    const weeksSel  = document.getElementById('forecastWeeks');
+    const prepQtyEl = document.getElementById('preparedQty');
+    const mealVal   = mealSel?.value;
+    const weeksVal  = weeksSel?.value || '7';
+    const prepQtyRaw = prepQtyEl?.value || '';
 
-    // Show loading, hide states
     hide('forecastEmpty');
     hide('forecastResult');
     hide('forecastError');
@@ -132,20 +152,36 @@ const BS = (function () {
     hide('explainLoading');
 
     if (!result.ok) {
-      showErr('forecastError', result.error);
+      // BUG-02 FIX: distinguish 503 (model loading) from other errors
+      let errMsg = result.error;
+      if (result.status === 503) {
+        errMsg = 'The demand model is still training — this takes about 60–90 seconds on first start. '
+               + 'Please wait a moment and try again.';
+        // Schedule an automatic retry hint
+        const btn = document.getElementById('runForecastBtn');
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = 'Retry in 15s…';
+          setTimeout(() => {
+            btn.disabled = false;
+            btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Run Forecast`;
+          }, 15000);
+        }
+      }
+      showErr('forecastError', errMsg);
       show('forecastError');
       show('forecastEmpty');
       html('explainResult',
-        '<div class="alert alert-info" style="margin:0;">Forecast required before explainability can be shown.</div>');
+        '<div class="alert alert-info" style="margin:0;">Run a forecast first to see explainability.</div>');
       show('explainResult');
       return;
     }
 
     const forecastRows = result.data?.forecast || [];
     const surplusSum   = result.data?.surplus_summary || null;
-    const prepQty       = parseFloat(prepQtyRaw) || null;
 
-    // Feature 1: Render demand chart
     show('forecastResult');
     if (window.BSCharts) {
       BSCharts.renderDemandChart('demandChart', forecastRows);
@@ -161,13 +197,11 @@ const BS = (function () {
          </span>`;
     }
 
-    // Feature 1: Confidence note from first row
     const confNote = forecastRows[0]?.confidence_note || '';
     text('forecastNote', confNote ? '📊 ' + confNote : '');
 
     // Feature 10: Explainability
-    const explainData = result.data?.explanation;
-    _renderExplainability(explainData);
+    _renderExplainability(result.data?.explanation);
   }
 
   /* ─── Feature 10: Explainability renderer ─────────────── */
@@ -199,11 +233,9 @@ const BS = (function () {
      Endpoint: POST /api/surplus
      Request body: { food_item, quantity_kg, date_of_surplus,
                      expiry_time_hours, urgency }
-     ⚠ PENDING backend wiring
   ══════════════════════════════════════════════════════════ */
   async function submitSurplus(event) {
     if (event) event.preventDefault();
-    _apiPending('POST /api/surplus');
 
     hide('surplusFormError');
     hide('surplusFormSuccess');
@@ -219,7 +251,6 @@ const BS = (function () {
       urgency:           form.urgency?.value,
     };
 
-    // Client-side validation
     if (!body.food_item || isNaN(body.quantity_kg) || body.quantity_kg <= 0 ||
         !body.date_of_surplus || isNaN(body.expiry_time_hours) || !body.urgency) {
       showErr('surplusFormError', 'Please fill all required fields correctly.');
@@ -250,15 +281,14 @@ const BS = (function () {
     const success = document.getElementById('surplusFormSuccess');
     if (success) { success.textContent = 'Surplus logged successfully.'; success.style.display = ''; }
     form.reset();
-    document.getElementById('surplusDate').valueAsDate = new Date();
+    const dateField = document.getElementById('surplusDate');
+    if (dateField) dateField.valueAsDate = new Date();
     loadSurplusLog();
     return false;
   }
 
   /* ── Surplus log table loader ────────────────────────── */
   async function loadSurplusLog() {
-    _apiPending('GET /api/surplus');
-
     hide('surplusLogTable');
     hide('surplusLogEmpty');
     show('surplusLogLoading');
@@ -267,17 +297,29 @@ const BS = (function () {
     hide('surplusLogLoading');
 
     if (!result.ok) {
-      // Show empty with error hint
       const el = document.getElementById('surplusLogEmpty');
       if (el) {
-        el.querySelector('.empty-state-title').textContent = 'Could not load surplus log';
-        el.querySelector('.empty-state-desc').textContent = result.error;
+        const t = el.querySelector('.empty-state-title');
+        const d = el.querySelector('.empty-state-desc');
+        if (t) t.textContent = 'Could not load surplus log';
+        if (d) d.textContent = result.error;
       }
       show('surplusLogEmpty');
       return;
     }
 
     const rows = result.data?.items || result.data || [];
+
+    // BUG-01 FIX: wire Kitchen KPI — Total Surplus This Month
+    const monthKg = result.data?.total_this_month_kg;
+    if (monthKg != null) {
+      text('kpiSurplus', Number(monthKg).toFixed(1) + ' kg');
+    }
+
+    // BUG-01 FIX: wire Pending Matches KPI from surplus log
+    const pending = rows.filter(r => r.status === 'confirmed' || r.status === 'pending').length;
+    text('kpiMatches', pending);
+
     if (!rows.length) {
       show('surplusLogEmpty');
       return;
@@ -295,7 +337,8 @@ const BS = (function () {
         <td>${urgencyBadge(r.urgency)}</td>
         <td>${statusBadge(r.status)}</td>
         <td>
-          <a href="/ngo-matches?surplus_id=${esc(r.surplus_id)}" class="btn btn-sm btn-ghost">Find NGOs</a>
+          <a href="/ngo-matches?surplus_id=${esc(r.surplus_id)}"
+             class="btn btn-sm btn-ghost">Find NGOs</a>
         </td>
       </tr>`).join('');
     show('surplusLogTable');
@@ -303,7 +346,6 @@ const BS = (function () {
 
   /* ── Surplus dropdown for match/route selects ──────── */
   async function loadSurplusForMatchSelect() {
-    _apiPending('GET /api/surplus');
     const sel = document.getElementById('matchSurplusSelect');
     if (!sel) return;
 
@@ -311,15 +353,26 @@ const BS = (function () {
     if (!result.ok || !result.data) return;
 
     const rows = result.data?.items || result.data || [];
+
+    // BUG-22 FIX: pre-select surplus_id from URL query param
+    const urlSurplusId = new URLSearchParams(window.location.search).get('surplus_id');
+
     sel.innerHTML = rows.length
       ? rows.map(r =>
-          `<option value="${esc(r.surplus_id)}">${esc(r.food_item)} — ${esc(r.quantity_kg)} kg (${esc(r.urgency)})</option>`
+          `<option value="${esc(r.surplus_id)}"
+            ${urlSurplusId === r.surplus_id ? 'selected' : ''}>
+            ${esc(r.food_item)} — ${esc(r.quantity_kg)} kg (${esc(r.urgency)})
+          </option>`
         ).join('')
       : '<option value="">No surplus items available</option>';
+
+    // BUG-22 FIX: if URL had a surplus_id, auto-trigger find
+    if (urlSurplusId && rows.some(r => r.surplus_id === urlSurplusId)) {
+      findMatches();
+    }
   }
 
   async function loadSurplusForRouteSelect() {
-    _apiPending('GET /api/surplus');
     const sel = document.getElementById('routeSurplusSelect');
     if (!sel) return;
 
@@ -335,14 +388,11 @@ const BS = (function () {
   }
 
   /* ══════════════════════════════════════════════════════════
-     FEATURE 4 + 5: NGO MATCHING + NUTRITION
-     Endpoint: GET /api/matches?surplus_id=
+     FEATURE 4 + 5: NGO MATCHING + NUTRITION (Kitchen side)
+     Endpoint: GET /api/matches/find?surplus_id=
      Response: { matches: [NGOMatchResult + nutrition fields] }
-     ⚠ PENDING backend wiring
   ══════════════════════════════════════════════════════════ */
   async function findMatches() {
-    _apiPending('GET /api/matches');
-
     const sel       = document.getElementById('matchSurplusSelect');
     const surplusId = sel?.value;
 
@@ -382,7 +432,6 @@ const BS = (function () {
 
     matches.forEach((m, idx) => {
       const clone = template.content.cloneNode(true);
-      const card  = clone.querySelector('.match-card');
 
       clone.querySelector('.mc-name').textContent     = m.name || m.ngo_id || '—';
       clone.querySelector('.mc-location').textContent = m.location || '—';
@@ -391,18 +440,15 @@ const BS = (function () {
       clone.querySelector('.mc-capacity').textContent =
         m.capacity_kg != null ? m.capacity_kg + ' kg' : '—';
 
-      // Urgency badge
       const ub = clone.querySelector('.mc-urgency-badge');
       if (ub) ub.outerHTML = urgencyBadge(m.urgency || 'medium');
 
-      // Score bar
       const scoreFill = clone.querySelector('.mc-score-fill');
       const scoreVal  = clone.querySelector('.mc-score-val');
       const pct = Math.min(100, Math.max(0, (m.score ?? 0) * 100));
       if (scoreFill) scoreFill.style.width = pct.toFixed(1) + '%';
       if (scoreVal)  scoreVal.textContent  = pct.toFixed(1) + '%';
 
-      // Sub-scores
       const subScores = clone.querySelector('.mc-sub-scores');
       if (subScores) {
         const items = [
@@ -464,7 +510,12 @@ const BS = (function () {
       // Confirm button
       const confirmBtn = clone.querySelector('.mc-confirm-btn');
       if (confirmBtn) {
-        confirmBtn.addEventListener('click', () => confirmMatch(m.ngo_id, m.surplus_id));
+        // BUG-07 FIX: store data on button, wire to inline feedback
+        confirmBtn.dataset.ngoId = m.ngo_id || '';
+        confirmBtn.dataset.surplusId = m.surplus_id || '';
+        confirmBtn.addEventListener('click', () => {
+          confirmMatch(confirmBtn.dataset.ngoId, confirmBtn.dataset.surplusId, confirmBtn);
+        });
       }
 
       container.appendChild(clone);
@@ -481,28 +532,39 @@ const BS = (function () {
     });
   }
 
-  async function confirmMatch(ngoId, surplusId) {
-    _apiPending('POST /api/matches/confirm');
+  /* BUG-07 FIX: confirmMatch uses inline feedback, not alert() */
+  async function confirmMatch(ngoId, surplusId, triggerBtn) {
+    if (triggerBtn) {
+      triggerBtn.disabled = true;
+      triggerBtn.textContent = 'Confirming…';
+    }
     const result = await apiFetch('/api/matches/confirm', {
       method: 'POST',
       body: JSON.stringify({ ngo_id: ngoId, surplus_id: surplusId }),
     });
     if (!result.ok) {
-      alert('Could not confirm match: ' + result.error);
+      if (triggerBtn) {
+        triggerBtn.disabled = false;
+        triggerBtn.textContent = 'Confirm Match';
+      }
+      showToast('Could not confirm match: ' + result.error, 'error');
     } else {
-      alert('Match confirmed successfully.');
-      findMatches();
+      if (triggerBtn) {
+        triggerBtn.textContent = '✓ Confirmed';
+        triggerBtn.className = 'btn btn-secondary btn-sm';
+        triggerBtn.disabled = true;
+      }
+      showToast('Match confirmed successfully.', 'success');
+      // Refresh surplus log KPIs
+      loadSurplusLog();
     }
   }
 
   /* ══════════════════════════════════════════════════════════
      FEATURE 4+5 (NGO dashboard)
      Endpoint: GET /api/ngo/matches
-     ⚠ PENDING
   ══════════════════════════════════════════════════════════ */
   async function loadNgoMatches() {
-    _apiPending('GET /api/ngo/matches');
-
     hide('ngoMatchesTable');
     hide('ngoMatchesEmpty');
     hide('ngoMatchesError');
@@ -518,52 +580,78 @@ const BS = (function () {
     }
 
     const matches = result.data?.matches || result.data || [];
+
+    // BUG-01 FIX: wire NGO dashboard KPIs from match data
+    const accepted = matches.filter(m => m.status === 'accepted' || m.status === 'confirmed').length;
+    const pending  = matches.filter(m => m.status === 'pending').length;
+    const totalKg  = matches
+      .filter(m => m.status === 'accepted' || m.status === 'confirmed')
+      .reduce((s, m) => s + (parseFloat(m.quantity_kg) || 0), 0);
+    const estMeals = Math.round(totalKg / 0.5);
+
+    text('kpiAccepted',      accepted);
+    text('kpiFoodReceived',  totalKg.toFixed(1) + ' kg');
+    text('kpiMealsServed',   estMeals);
+    text('kpiPendingPickups', pending);
+
     if (!matches.length) { show('ngoMatchesEmpty'); return; }
 
     const tbody = document.getElementById('ngoMatchesBody');
     if (!tbody) return;
 
+    // BUG-15 FIX: we need kitchen names — fetch kitchen list once then render
+    const kitchenResult = await apiFetch('/api/kitchens');
+    const kitchenMap = {};
+    if (kitchenResult.ok && kitchenResult.data?.kitchens) {
+      kitchenResult.data.kitchens.forEach(k => { kitchenMap[k.kitchen_id] = k.name; });
+    }
+
     tbody.innerHTML = matches.map(m => `
       <tr>
         <td>${esc(m.food_item || m.item || '—')}</td>
-        <td>${esc(m.kitchen_id || m.kitchen_name || '—')}</td>
+        <td>${esc(kitchenMap[m.kitchen_id] || m.kitchen_id || '—')}</td>
         <td>${esc(m.quantity_kg)}</td>
-        <td>${m.distance_km != null ? m.distance_km.toFixed(1) : '—'}</td>
+        <td>${m.distance_km != null ? Number(m.distance_km).toFixed(1) : '—'}</td>
         <td>${scoreBar(m.score)}</td>
         <td>${urgencyBadge(m.urgency || 'medium')}</td>
         <td>${m.nutrition_priority
               ? `<span class="badge badge-conf-HIGH">${esc(m.nutrition_priority)}</span>`
               : '—'}</td>
         <td>${statusBadge(m.status || 'pending')}</td>
-        <td style="display:flex; gap:4px;">
+        <td style="display:flex; gap:4px; flex-wrap:wrap;">
           <button class="btn btn-success btn-sm"
-            onclick="BS.patchMatchStatus('${esc(m.match_id)}','accepted')">Accept</button>
+            data-mid="${esc(m.match_id)}" data-action="accepted"
+            onclick="BS.patchMatchStatus(this.dataset.mid,'accepted',this)">Accept</button>
           <button class="btn btn-danger btn-sm"
-            onclick="BS.patchMatchStatus('${esc(m.match_id)}','rejected')">Reject</button>
+            data-mid="${esc(m.match_id)}" data-action="rejected"
+            onclick="BS.patchMatchStatus(this.dataset.mid,'rejected',this)">Reject</button>
         </td>
       </tr>`).join('');
 
     show('ngoMatchesTable');
   }
 
-  async function patchMatchStatus(matchId, status) {
-    _apiPending('PATCH /api/matches/:id/status');
+  /* BUG-07 FIX: patchMatchStatus uses inline toast instead of alert() */
+  async function patchMatchStatus(matchId, status, triggerBtn) {
+    if (triggerBtn) triggerBtn.disabled = true;
     const result = await apiFetch(`/api/matches/${encodeURIComponent(matchId)}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status }),
     });
-    if (!result.ok) alert('Error: ' + result.error);
-    else loadNgoMatches();
+    if (!result.ok) {
+      if (triggerBtn) triggerBtn.disabled = false;
+      showToast('Error updating match: ' + result.error, 'error');
+    } else {
+      showToast(`Match ${status} successfully.`, 'success');
+      loadNgoMatches();
+    }
   }
 
   /* ══════════════════════════════════════════════════════════
      FEATURE 6: ROUTE OPTIMISATION
      Endpoint: GET /api/route?surplus_id=
-     ⚠ PENDING
   ══════════════════════════════════════════════════════════ */
   async function optimiseRoute() {
-    _apiPending('GET /api/route');
-
     const sel       = document.getElementById('routeSurplusSelect');
     const surplusId = sel?.value;
 
@@ -589,11 +677,8 @@ const BS = (function () {
   /* ══════════════════════════════════════════════════════════
      FEATURE 7: PRODUCTION PLANNING
      Endpoint: GET /api/production_planning
-     ⚠ PENDING
   ══════════════════════════════════════════════════════════ */
   async function loadProductionPlanning() {
-    _apiPending('GET /api/production_planning');
-
     hide('planningEmpty');
     hide('planningError');
     hide('recommendationsList');
@@ -655,7 +740,6 @@ const BS = (function () {
         clone.querySelector('.rc-procured').textContent = ev.total_procured_kg + ' kg';
       }
 
-      // Unique evidence ID
       const evidenceId = `evidence-${idx}`;
       const toggle  = clone.querySelector('.collapse-toggle');
       const content = clone.querySelector('.collapse-content');
@@ -679,13 +763,11 @@ const BS = (function () {
      FEATURE 8 + 9: SUSTAINABILITY + ESG REPORT
      Endpoints:
        GET  /api/sustainability
+       GET  /api/sustainability/trend
        GET  /api/sustainability/by-kitchen
        POST /api/report/download
-     ⚠ PENDING
   ══════════════════════════════════════════════════════════ */
   async function loadSustainability() {
-    _apiPending('GET /api/sustainability');
-
     hide('trendCard');
     hide('byKitchenCard');
     hide('sustainEmpty');
@@ -722,7 +804,12 @@ const BS = (function () {
     text('metricWater', d.estimated_water_saved_liters != null
       ? Number(d.estimated_water_saved_liters).toFixed(0) : '—');
 
-    // Trend chart (Feature 8)
+    // BUG-01 FIX: wire Kitchen CO2 + Meals KPI from sustainability data
+    text('kpiCo2',   d.estimated_co2e_avoided_kg != null
+      ? Number(d.estimated_co2e_avoided_kg).toFixed(1) : '—');
+    text('kpiMeals', d.total_meals_redistributed ?? '—');
+
+    // Trend chart
     if (trendResult.ok && trendResult.data) {
       const daily = trendResult.data.daily_series || [];
       if (daily.length) {
@@ -741,7 +828,7 @@ const BS = (function () {
       }
     }
 
-    // By-kitchen breakdown (Feature 8)
+    // By-kitchen breakdown
     if (kitchenResult.ok && kitchenResult.data) {
       const rows = kitchenResult.data || [];
       if (rows.length) {
@@ -763,8 +850,6 @@ const BS = (function () {
   }
 
   async function downloadReport() {
-    _apiPending('POST /api/report/download');
-
     hide('reportError');
     hide('reportSuccess');
 
@@ -798,7 +883,6 @@ const BS = (function () {
       return;
     }
 
-    // If backend returns a download URL or blob
     if (result.data?.download_url) {
       window.location.href = result.data.download_url;
     } else {
@@ -811,14 +895,13 @@ const BS = (function () {
      FEATURE 3: RAW MATERIAL EXCHANGE
      Endpoints:
        POST /api/exchange/listing
+       GET  /api/exchange/listings
        GET  /api/exchange/matches
        POST /api/exchange/propose
        GET  /api/exchange/mine
-     ⚠ PENDING
   ══════════════════════════════════════════════════════════ */
   async function submitListing(event) {
     if (event) event.preventDefault();
-    _apiPending('POST /api/exchange/listing');
 
     hide('listingFormError');
     hide('listingFormSuccess');
@@ -827,9 +910,9 @@ const BS = (function () {
     if (!form) return false;
 
     const body = {
-      ingredient: form.ingredient?.value?.trim(),
-      quantity:   parseFloat(form.quantity?.value),
-      unit:       form.unit?.value,
+      ingredient:  form.ingredient?.value?.trim(),
+      quantity:    parseFloat(form.quantity?.value),
+      unit:        form.unit?.value,
       date_listed: form.date_listed?.value,
       use_by_date: form.use_by_date?.value || null,
     };
@@ -863,14 +946,13 @@ const BS = (function () {
     const success = document.getElementById('listingFormSuccess');
     if (success) { success.textContent = 'Material listed successfully.'; success.style.display = ''; }
     form.reset();
-    document.getElementById('listDate').valueAsDate = new Date();
+    const dateField = document.getElementById('listDate');
+    if (dateField) dateField.valueAsDate = new Date();
     loadMyListings();
     return false;
   }
 
   async function loadMyListings() {
-    _apiPending('GET /api/exchange/listings');
-
     hide('myListingsTable');
     hide('myListingsEmpty');
     hide('myListingsError');
@@ -903,8 +985,6 @@ const BS = (function () {
   }
 
   async function findExchangeMatches() {
-    _apiPending('GET /api/exchange/matches');
-
     const ingredient = document.getElementById('needIngredient')?.value?.trim();
     const qty        = document.getElementById('needQty')?.value;
     const date       = document.getElementById('needDate')?.value;
@@ -937,7 +1017,7 @@ const BS = (function () {
     container.innerHTML = matches.map((m, i) => `
       <div class="card" style="margin-bottom:var(--space-3);">
         <div class="card-body">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:var(--space-3);">
             <div>
               <strong>${esc(m.listing?.ingredient || '—')}</strong>
               &nbsp; ${esc(m.listing?.quantity)} ${esc(m.listing?.unit)}
@@ -950,11 +1030,13 @@ const BS = (function () {
             Use by: ${esc(m.listing?.use_by_date || '—')} &nbsp;|&nbsp;
             Distance: ${m.distance_km != null ? m.distance_km.toFixed(1) + ' km' : '—'}
           </div>
-          <div class="reasons-list" style="margin-top:6px;">
+          <ul class="reasons-list" style="margin-top:6px;">
             ${(m.reasons || []).map(r => `<li>${esc(r)}</li>`).join('')}
-          </div>
+          </ul>
+          <div id="propose-feedback-${i}" style="display:none; margin-top:6px;"></div>
           <button class="btn btn-sm btn-primary" style="margin-top:8px;"
-            onclick="BS.proposeExchange('${esc(m.listing?.listing_id || '')}')">
+            data-lid="${esc(m.listing?.listing_id || '')}" data-idx="${i}"
+            onclick="BS.proposeExchange(this.dataset.lid, this.dataset.idx)">
             Propose Exchange
           </button>
         </div>
@@ -963,19 +1045,34 @@ const BS = (function () {
     show('exchangeMatchResults');
   }
 
-  async function proposeExchange(listingId) {
-    _apiPending('POST /api/exchange/propose');
+  /* BUG-07 FIX: proposeExchange uses inline feedback, not alert() */
+  async function proposeExchange(listingId, cardIdx) {
+    const feedbackEl = document.getElementById(`propose-feedback-${cardIdx}`);
     const result = await apiFetch('/api/exchange/propose', {
       method: 'POST',
       body: JSON.stringify({ listing_id: listingId }),
     });
-    if (!result.ok) alert('Could not propose exchange: ' + result.error);
-    else { alert('Exchange proposed successfully.'); loadMyExchanges(); }
+    if (!result.ok) {
+      if (feedbackEl) {
+        feedbackEl.className = 'alert alert-error';
+        feedbackEl.textContent = 'Could not propose exchange: ' + result.error;
+        feedbackEl.style.display = '';
+      } else {
+        showToast('Could not propose exchange: ' + result.error, 'error');
+      }
+    } else {
+      if (feedbackEl) {
+        feedbackEl.className = 'alert alert-success';
+        feedbackEl.textContent = 'Exchange proposed successfully.';
+        feedbackEl.style.display = '';
+      } else {
+        showToast('Exchange proposed successfully.', 'success');
+      }
+      loadMyExchanges();
+    }
   }
 
   async function loadMyExchanges() {
-    _apiPending('GET /api/exchange/mine');
-
     hide('myExchangesTable');
     hide('myExchangesEmpty');
     hide('myExchangesError');
@@ -1013,8 +1110,6 @@ const BS = (function () {
      ADMIN dashboard loaders
   ══════════════════════════════════════════════════════════ */
   async function loadAdminKitchens() {
-    _apiPending('GET /api/kitchens');
-
     hide('kitchensTable'); hide('kitchensEmpty'); hide('kitchensError');
     show('kitchensLoading');
 
@@ -1039,8 +1134,6 @@ const BS = (function () {
   }
 
   async function loadAdminNgos() {
-    _apiPending('GET /api/ngos');
-
     hide('ngosTable'); hide('ngosEmpty'); hide('ngosError');
     show('ngosLoading');
 
@@ -1066,8 +1159,6 @@ const BS = (function () {
   }
 
   async function loadAdminMatches() {
-    _apiPending('GET /api/matches');
-
     hide('allMatchesTable'); hide('allMatchesEmpty'); hide('allMatchesError');
     show('allMatchesLoading');
 
@@ -1098,24 +1189,39 @@ const BS = (function () {
   }
 
   async function loadAdminSustainability() {
-    _apiPending('GET /api/sustainability');
-
     hide('adminSustainData'); hide('adminSustainError');
     show('adminSustainLoading');
 
-    const result = await apiFetch('/api/sustainability');
+    // BUG-01 FIX: also load surplus for kpiTotalSurplus
+    const [sustainResult, surplusResult] = await Promise.all([
+      apiFetch('/api/sustainability'),
+      apiFetch('/api/surplus'),
+    ]);
+
     hide('adminSustainLoading');
 
-    if (!result.ok) { showErr('adminSustainError', result.error); show('adminSustainError'); return; }
+    if (!sustainResult.ok) {
+      showErr('adminSustainError', sustainResult.error);
+      show('adminSustainError');
+    } else {
+      const d = sustainResult.data || {};
+      text('adminRedistributed', Number(d.total_food_redistributed_kg || 0).toFixed(1));
+      text('adminCo2', Number(d.estimated_co2e_avoided_kg || 0).toFixed(1));
+      text('adminMeals', d.total_meals_redistributed ?? '—');
+      show('adminSustainData');
+    }
 
-    const d = result.data || {};
-    text('adminRedistributed', Number(d.total_food_redistributed_kg || 0).toFixed(1));
-    text('adminCo2', Number(d.estimated_co2e_avoided_kg || 0).toFixed(1));
-    text('adminMeals', d.total_meals_redistributed ?? '—');
-    show('adminSustainData');
+    // BUG-01 FIX: wire "Surplus Logged" KPI
+    if (surplusResult.ok && surplusResult.data) {
+      const allRows = surplusResult.data?.items || surplusResult.data || [];
+      const totalKg = allRows.reduce((s, r) => s + (parseFloat(r.quantity_kg) || 0), 0);
+      text('kpiTotalSurplus', totalKg.toFixed(1) + ' kg');
+    }
   }
 
-  /* ── Load meals/centers dropdown for demand forecast ────── */
+  /* ── BUG-13 FIX: loadMealsDropdown with auto-retry ────── */
+  let _mealsRetryTimer = null;
+
   async function loadMealsDropdown() {
     const sel = document.getElementById('forecastMeal');
     if (!sel) return;
@@ -1125,9 +1231,14 @@ const BS = (function () {
 
     const meals = result.data.meals || [];
     if (!meals.length) {
-      sel.innerHTML = '<option value="">No meal data available (model loading…)</option>';
+      sel.innerHTML = '<option value="">Model loading — retrying in 15s…</option>';
+      // BUG-13 FIX: schedule automatic retry
+      clearTimeout(_mealsRetryTimer);
+      _mealsRetryTimer = setTimeout(loadMealsDropdown, 15000);
       return;
     }
+
+    clearTimeout(_mealsRetryTimer);
     sel.innerHTML = meals.map(m =>
       `<option value="${esc(String(m))}">Meal ${esc(String(m))}</option>`
     ).join('');
@@ -1167,6 +1278,8 @@ const BS = (function () {
     loadAdminSustainability,
     // UI
     switchTab,
+    // Toast (accessible for inline use)
+    showToast,
   };
 })();
 

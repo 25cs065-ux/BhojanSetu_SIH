@@ -19,92 +19,157 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <img src="{{ url_for('static', filename='images/sihr2logo.jpeg') }}" alt="BhojanSetu logo">
-      <span class="sidebar-brand-name">BhojanSetu</span>
-      <span class="sidebar-role-tag">{{ session.get('role', '').capitalize() }}</span>
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-name">BhojanSetu</span>
+        <span class="sidebar-role-tag">{{ session.get('role', '').capitalize() }}</span>
+      </div>
+      <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" aria-label="Collapse sidebar" title="Collapse sidebar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
     </div>
 
-    <nav class="sidebar-nav">
+    <nav class="sidebar-nav" aria-label="Main navigation">
       {% set role = session.get('role', '') %}
 
       {# ── Kitchen nav ── #}
       {% if role == 'kitchen' %}
-        <div class="sidebar-section-label">Kitchen</div>
-        <a href="{{ url_for('dashboard_kitchen') }}" class="sidebar-link {% if request.endpoint == 'dashboard_kitchen' %}active{% endif %}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-          Dashboard
-        </a>
-        <a href="{{ url_for('ngo_matches') }}" class="sidebar-link {% if request.endpoint == 'ngo_matches' %}active{% endif %}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          NGO Matches
-        </a>
-        <a href="{{ url_for('route_map') }}" class="sidebar-link {% if request.endpoint == 'route_map' %}active{% endif %}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-          Route Map
-        </a>
-        <a href="{{ url_for('surplus_exchange') }}" class="sidebar-link {% if request.endpoint == 'surplus_exchange' %}active{% endif %}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-          Raw Material Exchange
-        </a>
-        <a href="{{ url_for('production_planning') }}" class="sidebar-link {% if request.endpoint == 'production_planning' %}active{% endif %}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-          Production Planning
-        </a>
-        <a href="{{ url_for('sustainability_report') }}" class="sidebar-link {% if request.endpoint == 'sustainability_report' %}active{% endif %}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          Sustainability
-        </a>
+
+        <div class="nav-group">
+          <div class="sidebar-section-label">Main</div>
+          <a href="{{ url_for('dashboard_kitchen') }}"
+             class="sidebar-link {% if request.endpoint == 'dashboard_kitchen' %}active{% endif %}"
+             title="Dashboard">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+            <span class="sidebar-link-label">Dashboard</span>
+          </a>
+          <a href="{{ url_for('dashboard_kitchen') }}#forecast"
+             class="sidebar-link {% if request.endpoint == 'dashboard_kitchen' and request.full_path.endswith('#forecast') %}active{% endif %}"
+             title="Demand Forecast & Surplus">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            <span class="sidebar-link-label">Demand Forecast</span>
+          </a>
+        </div>
+
+        <div class="nav-group">
+          <div class="sidebar-section-label">Redistribution</div>
+          <a href="{{ url_for('surplus_exchange') }}"
+             class="sidebar-link {% if request.endpoint == 'surplus_exchange' %}active{% endif %}"
+             title="Raw Material Exchange">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            <span class="sidebar-link-label">Raw Material Exchange</span>
+          </a>
+          <a href="{{ url_for('ngo_matches') }}"
+             class="sidebar-link {% if request.endpoint == 'ngo_matches' %}active{% endif %}"
+             title="NGO Matching">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span class="sidebar-link-label">NGO Matching</span>
+          </a>
+          <a href="{{ url_for('route_map') }}"
+             class="sidebar-link {% if request.endpoint == 'route_map' %}active{% endif %}"
+             title="Route Optimisation">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+            <span class="sidebar-link-label">Route Optimisation</span>
+          </a>
+        </div>
+
+        <div class="nav-group">
+          <div class="sidebar-section-label">Planning</div>
+          <a href="{{ url_for('production_planning') }}"
+             class="sidebar-link {% if request.endpoint == 'production_planning' %}active{% endif %}"
+             title="Production Planning">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            <span class="sidebar-link-label">Production Planning</span>
+          </a>
+        </div>
+
+        <div class="nav-group">
+          <div class="sidebar-section-label">Insights</div>
+          <a href="{{ url_for('sustainability_report') }}"
+             class="sidebar-link {% if request.endpoint == 'sustainability_report' %}active{% endif %}"
+             title="Sustainability &amp; Reports">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span class="sidebar-link-label">Sustainability &amp; Reports</span>
+          </a>
+        </div>
 
       {# ── NGO nav ── #}
       {% elif role == 'ngo' %}
-        <div class="sidebar-section-label">NGO</div>
-        <a href="{{ url_for('dashboard_ngo') }}" class="sidebar-link {% if request.endpoint == 'dashboard_ngo' %}active{% endif %}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-          Dashboard
-        </a>
-        <a href="{{ url_for('ngo_matches') }}" class="sidebar-link {% if request.endpoint == 'ngo_matches' %}active{% endif %}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-          My Matches
-        </a>
-        <a href="{{ url_for('route_map') }}" class="sidebar-link {% if request.endpoint == 'route_map' %}active{% endif %}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-          Route Map
-        </a>
-        <a href="{{ url_for('sustainability_report') }}" class="sidebar-link {% if request.endpoint == 'sustainability_report' %}active{% endif %}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          Sustainability
-        </a>
+
+        <div class="nav-group">
+          <div class="sidebar-section-label">Overview</div>
+          <a href="{{ url_for('dashboard_ngo') }}"
+             class="sidebar-link {% if request.endpoint == 'dashboard_ngo' %}active{% endif %}"
+             title="Dashboard">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+            <span class="sidebar-link-label">Dashboard</span>
+          </a>
+        </div>
+
+        <div class="nav-group">
+          <div class="sidebar-section-label">Matches</div>
+          <a href="{{ url_for('ngo_matches') }}"
+             class="sidebar-link {% if request.endpoint == 'ngo_matches' %}active{% endif %}"
+             title="Incoming Matches">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <span class="sidebar-link-label">Incoming Matches</span>
+          </a>
+          <a href="{{ url_for('route_map') }}"
+             class="sidebar-link {% if request.endpoint == 'route_map' %}active{% endif %}"
+             title="Route Map">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+            <span class="sidebar-link-label">Route Map</span>
+          </a>
+        </div>
+
+        <div class="nav-group">
+          <div class="sidebar-section-label">Insights</div>
+          <a href="{{ url_for('sustainability_report') }}"
+             class="sidebar-link {% if request.endpoint == 'sustainability_report' %}active{% endif %}"
+             title="Sustainability">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span class="sidebar-link-label">Sustainability</span>
+          </a>
+        </div>
 
       {# ── Admin nav ── #}
       {% elif role == 'admin' %}
-        <div class="sidebar-section-label">Admin</div>
-        <a href="{{ url_for('dashboard_admin') }}" class="sidebar-link {% if request.endpoint == 'dashboard_admin' %}active{% endif %}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-          Dashboard
-        </a>
-        <a href="{{ url_for('sustainability_report') }}" class="sidebar-link {% if request.endpoint == 'sustainability_report' %}active{% endif %}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          Sustainability
-        </a>
+
+        <div class="nav-group">
+          <div class="sidebar-section-label">Monitor</div>
+          <a href="{{ url_for('dashboard_admin') }}"
+             class="sidebar-link {% if request.endpoint == 'dashboard_admin' %}active{% endif %}"
+             title="Overview">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+            <span class="sidebar-link-label">Overview</span>
+          </a>
+          <a href="{{ url_for('sustainability_report') }}"
+             class="sidebar-link {% if request.endpoint == 'sustainability_report' %}active{% endif %}"
+             title="Sustainability">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span class="sidebar-link-label">Sustainability</span>
+          </a>
+        </div>
+
       {% endif %}
     </nav>
 
     <div class="sidebar-footer">
-      BhojanSetu &copy; 2024
+      <span class="sidebar-footer-text">BhojanSetu &copy; 2024</span>
     </div>
   </aside>
 
   <!-- ── Main area ──────────────────────────────────────── -->
-  <div style="flex:1; display:flex; flex-direction:column; width:100%;">
+  <div class="main-wrapper">
     <!-- Topbar -->
     <header class="topbar">
       <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
       <span class="topbar-title">{% block page_title %}{% endblock %}</span>
       <span class="topbar-spacer"></span>
       <div class="topbar-user">
-        <div class="topbar-avatar">{{ session.get('user_name', 'U')[0].upper() if session.get('user_name') else 'U' }}</div>
-        <span>{{ session.get('user_name', 'User') }}</span>
+        <div class="topbar-avatar" aria-hidden="true">{{ session.get('user_name', 'U')[0].upper() if session.get('user_name') else 'U' }}</div>
+        <span class="topbar-user-name">{{ session.get('user_name', 'User') }}</span>
         <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">Logout</a>
       </div>
     </header>
@@ -135,26 +200,59 @@
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 
 <script>
-  // Sidebar mobile toggle
-  const sidebarToggle = document.getElementById('sidebarToggle');
-  const sidebar = document.getElementById('sidebar');
-  if (sidebarToggle && sidebar) {
-    sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
-    document.addEventListener('click', (e) => {
-      if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
-        sidebar.classList.remove('open');
+  (function () {
+    const toggle   = document.getElementById('sidebarToggle');
+    const collapseBtn = document.getElementById('sidebarCollapseBtn');
+    const sidebar  = document.getElementById('sidebar');
+    const shell    = document.querySelector('.app-shell');
+
+    // ── Mobile overlay toggle ─────────────────────────────
+    if (toggle && sidebar) {
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sidebar.classList.toggle('open');
+      });
+      document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 768 &&
+            !sidebar.contains(e.target) &&
+            !toggle.contains(e.target)) {
+          sidebar.classList.remove('open');
+        }
+      });
+    }
+
+    // ── Desktop collapse toggle ───────────────────────────
+    const COLLAPSED_KEY = 'bs_sidebar_collapsed';
+    function applyCollapsed(collapsed) {
+      if (collapsed) {
+        shell && shell.classList.add('sidebar-collapsed');
+        sidebar && sidebar.classList.add('collapsed');
+      } else {
+        shell && shell.classList.remove('sidebar-collapsed');
+        sidebar && sidebar.classList.remove('collapsed');
       }
+    }
+    const savedCollapsed = localStorage.getItem(COLLAPSED_KEY) === 'true';
+    applyCollapsed(savedCollapsed);
+
+    if (collapseBtn) {
+      collapseBtn.addEventListener('click', () => {
+        const isCollapsed = sidebar.classList.contains('collapsed');
+        applyCollapsed(!isCollapsed);
+        localStorage.setItem(COLLAPSED_KEY, !isCollapsed);
+      });
+    }
+
+    // ── Expand collapse-content sections ─────────────────
+    document.querySelectorAll('.collapse-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = document.getElementById(btn.getAttribute('aria-controls'));
+        if (!target) return;
+        const open = target.classList.toggle('open');
+        btn.setAttribute('aria-expanded', open);
+      });
     });
-  }
-  // Collapse toggle
-  document.querySelectorAll('.collapse-toggle').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = document.getElementById(btn.getAttribute('aria-controls'));
-      if (!target) return;
-      const open = target.classList.toggle('open');
-      btn.setAttribute('aria-expanded', open);
-    });
-  });
+  })();
 </script>
 
 {% block scripts %}{% endblock %}
