@@ -1,29 +1,102 @@
 {% extends "base.html" %}
 {% block title %}NGO Matches — BhojanSetu{% endblock %}
-{% block page_title %}NGO &amp; Recipient Matching{% endblock %}
+{% set role = session.get('role', '') %}
+{% block page_title %}{% if role == 'ngo' %}Incoming Matches{% else %}NGO &amp; Recipient Matching{% endif %}{% endblock %}
 
 {% block content %}
 <div class="page-header">
+{% if role == 'ngo' %}
+  <h1>Incoming Matches</h1>
+  <p>Food surplus matched to your organisation — review and accept or reject each item.</p>
+{% else %}
   <h1>NGO &amp; Recipient Matching</h1>
   <p>Feature 4 + 5 — AI-Based NGO Matching with Nutrition Awareness</p>
+{% endif %}
 </div>
 
-<!-- ── Surplus selector ────────────────────────────────── -->
+{# ══════════════════════════════════════════════════════════
+   NGO VIEW — incoming matches list with Accept / Reject
+   Uses /api/ngo/matches (same endpoint as NGO dashboard)
+══════════════════════════════════════════════════════════ #}
+{% if role == 'ngo' %}
+
 <div class="card section-gap">
   <div class="card-header">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    <h3>Matches Assigned to Your Organisation</h3>
+    <div class="card-header-actions">
+      <button class="btn btn-secondary btn-sm" onclick="BS.loadNgoMatches()">Refresh</button>
+    </div>
+  </div>
+
+  <div class="loading-block" id="ngoMatchesLoading">
+    <span class="spinner spinner-dark"></span> Loading matches…
+  </div>
+  <div class="alert alert-error" id="ngoMatchesError" style="display:none; margin:var(--space-4);"></div>
+  <div class="empty-state" id="ngoMatchesEmpty" style="display:none;">
+    <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    <div class="empty-state-title">No matches assigned yet</div>
+    <div class="empty-state-desc">Matches will appear here when a kitchen confirms a surplus item for your organisation.</div>
+  </div>
+  <div class="table-wrap" id="ngoMatchesTable" style="display:none;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Food Item</th>
+          <th>Kitchen</th>
+          <th>Qty (kg)</th>
+          <th>Distance (km)</th>
+          <th>Score</th>
+          <th>Urgency</th>
+          <th>Nutrition Priority</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="ngoMatchesBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card section-gap">
+  <div class="card-header">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+    <h3>Plan Your Pickup Route</h3>
+  </div>
+  <div class="card-body">
+    <p style="font-size:var(--font-sm); color:var(--color-text-muted); margin-bottom:var(--space-4);">
+      After accepting a match, use Route Optimisation to get directions from the kitchen to your collection point.
+    </p>
+    <a href="{{ url_for('route_map') }}" class="btn btn-secondary">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+      Open Route Map
+    </a>
+  </div>
+</div>
+
+{# ══════════════════════════════════════════════════════════
+   KITCHEN / ADMIN VIEW — surplus selector + AI match cards
+   Uses /api/surplus for selector, /api/matches/find for results
+══════════════════════════════════════════════════════════ #}
+{% else %}
+
+<!-- ── Surplus selector ──────────────────────────────────── -->
+<div class="card section-gap">
+  <div class="card-header">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
     <h3>Select Surplus Item</h3>
   </div>
   <div class="card-body">
-    <div class="form-row">
+    <div class="form-row" style="align-items:flex-end;">
       <div class="form-group" style="margin-bottom:0;">
         <label class="form-label" for="matchSurplusSelect">Surplus item</label>
         <select id="matchSurplusSelect" class="form-select">
-          <option value="">— Select a surplus item —</option>
+          <option value="">Loading surplus items…</option>
         </select>
       </div>
-      <div style="display:flex; align-items:flex-end;">
+      <div>
         <button class="btn btn-primary" id="findMatchesBtn" onclick="BS.findMatches()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           Find Matches
         </button>
       </div>
@@ -31,7 +104,7 @@
   </div>
 </div>
 
-<!-- ── Results ────────────────────────────────────────────── -->
+<!-- ── Results area ──────────────────────────────────────── -->
 <div class="loading-block" id="matchesLoading" style="display:none;">
   <span class="spinner spinner-dark"></span> Finding best NGO matches…
 </div>
@@ -39,7 +112,7 @@
 <div class="alert alert-error" id="matchesError" style="display:none;"></div>
 
 <div class="empty-state" id="matchesEmpty">
-  <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+  <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
   <div class="empty-state-title">No matches shown yet</div>
   <div class="empty-state-desc">Select a surplus item and click <em>Find Matches</em> to see ranked NGO candidates.</div>
 </div>
@@ -81,10 +154,10 @@
         <p class="footnote">Nutrition source: Indian Food Nutrition dataset (ICMR/NIN).</p>
       </div>
 
-      <!-- Reasons -->
+      <!-- Reasons collapsible -->
       <div style="margin-top:var(--space-3);">
         <button class="collapse-toggle" aria-expanded="false" aria-controls="reasons-PLACEHOLDER">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
           Show scoring reasons
         </button>
         <div class="collapse-content" id="reasons-PLACEHOLDER">
@@ -100,10 +173,19 @@
     </div>
   </div>
 </template>
+
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
 <script>
-  document.addEventListener('DOMContentLoaded', () => BS.loadSurplusForMatchSelect());
+  document.addEventListener('DOMContentLoaded', function () {
+    var role = document.body.getAttribute('data-role');
+    if (role === 'ngo') {
+      BS.loadNgoMatches();
+    } else {
+      BS.loadSurplusForMatchSelect();
+    }
+  });
 </script>
 {% endblock %}

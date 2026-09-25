@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Kitchen Dashboard — BhojanSetu{% endblock %}
-{% block page_title %}Kitchen Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -11,38 +11,48 @@
 <!-- ── KPI Row ──────────────────────────────────────────── -->
 <div class="kpi-grid" id="kpiRow">
   <div class="kpi-card">
+    <div class="kpi-icon kpi-icon-blue">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+    </div>
     <div class="kpi-label">Total Surplus This Month</div>
     <div class="kpi-value" id="kpiSurplus">—</div>
     <div class="kpi-sub">kg logged</div>
   </div>
   <div class="kpi-card">
+    <div class="kpi-icon kpi-icon-orange">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    </div>
     <div class="kpi-label">Pending Matches</div>
     <div class="kpi-value" id="kpiMatches">—</div>
     <div class="kpi-sub">awaiting confirmation</div>
   </div>
   <div class="kpi-card">
+    <div class="kpi-icon kpi-icon-green">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
     <div class="kpi-label">CO₂e Avoided</div>
     <div class="kpi-value" id="kpiCo2">—</div>
     <div class="kpi-sub">kg ESTIMATED</div>
   </div>
   <div class="kpi-card">
+    <div class="kpi-icon kpi-icon-purple">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>
+    </div>
     <div class="kpi-label">Meals Redistributed</div>
     <div class="kpi-value" id="kpiMeals">—</div>
     <div class="kpi-sub">this month</div>
   </div>
 </div>
 
-<!-- ── Main grid ────────────────────────────────────────── -->
-<div class="grid-2 section-gap">
-
+<!-- ── Forecast + Explainability row ─────────────────────── -->
+<div class="grid-2 section-gap" id="forecast">
   <!-- Feature 1 + 2: Demand Forecast + Surplus Prediction -->
   <div class="card">
     <div class="card-header">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      <h3>AI Demand Forecast &amp; Surplus Prediction</h3>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <h3>Demand Forecast &amp; Surplus Prediction</h3>
     </div>
     <div class="card-body">
-      <!-- Feature 1: Forecast inputs -->
       <div class="form-row" style="margin-bottom:var(--space-4);">
         <div class="form-group" style="margin-bottom:0">
           <label class="form-label" for="forecastMeal">Meal / Center</label>
@@ -59,29 +69,24 @@
           </select>
         </div>
       </div>
-      <!-- Feature 2: Prepared qty -->
+
       <div class="form-group">
-        <label class="form-label" for="preparedQty">Prepared quantity (units, for surplus calculation)</label>
+        <label class="form-label" for="preparedQty">Prepared quantity (units)</label>
         <input type="number" id="preparedQty" class="form-input" placeholder="e.g. 450" min="0" step="1">
-        <span class="form-hint">Enter the quantity you plan to prepare to see surplus risk</span>
+        <span class="form-hint">Enter quantity you plan to prepare to see surplus risk</span>
       </div>
 
       <button class="btn btn-primary" id="runForecastBtn" onclick="BS.runForecast()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         Run Forecast
       </button>
 
-      <!-- Loading state -->
       <div class="loading-block" id="forecastLoading" style="display:none;">
         <span class="spinner spinner-dark"></span> Running forecast…
       </div>
+      <div class="alert alert-error" id="forecastError" style="display:none; margin-top:var(--space-4);"></div>
 
-      <!-- Error state -->
-      <div class="alert alert-error" id="forecastError" style="display:none; margin-top:1rem;"></div>
-
-      <!-- Demand chart — shown after forecast runs -->
       <div id="forecastResult" style="display:none; margin-top:var(--space-4);">
-        <!-- Feature 2: Surplus risk badge -->
         <div id="surplusRiskBadge" style="margin-bottom:var(--space-3);"></div>
         <div class="chart-container">
           <canvas id="demandChart" height="200"></canvas>
@@ -89,9 +94,8 @@
         <p class="footnote" id="forecastNote"></p>
       </div>
 
-      <!-- Empty state (before any forecast) -->
       <div class="empty-state" id="forecastEmpty">
-        <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         <div class="empty-state-title">No forecast yet</div>
         <div class="empty-state-desc">Select a meal and click <em>Run Forecast</em> to see AI-predicted demand and surplus risk.</div>
       </div>
@@ -101,14 +105,14 @@
   <!-- Feature 10: Explainability Panel -->
   <div class="card">
     <div class="card-header">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
       <h3>Explainable AI — Why this prediction?</h3>
     </div>
     <div class="card-body">
       <div class="empty-state" id="explainEmpty">
-        <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <div class="empty-state-title">Run a forecast first</div>
-        <div class="empty-state-desc">Explainability panel shows feature importances after a forecast is run.</div>
+        <div class="empty-state-desc">Feature importances appear after a forecast is run.</div>
       </div>
 
       <div id="explainResult" style="display:none;">
@@ -130,59 +134,94 @@
   </div>
 </div>
 
-<!-- ── Log Surplus Form ──────────────────────────────────── -->
-<div class="card section-gap">
-  <div class="card-header">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-    <h3>Log Surplus Food</h3>
-  </div>
-  <div class="card-body">
-    <div class="alert alert-error" id="surplusFormError" style="display:none;"></div>
-    <div class="alert alert-success" id="surplusFormSuccess" style="display:none;"></div>
+<!-- ── Log Surplus + Surplus Log ─────────────────────────── -->
+<div class="grid-2 section-gap">
+  <!-- Log surplus form -->
+  <div class="card">
+    <div class="card-header">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      <h3>Log Surplus Food</h3>
+    </div>
+    <div class="card-body">
+      <div class="alert alert-error" id="surplusFormError" style="display:none;"></div>
+      <div class="alert alert-success" id="surplusFormSuccess" style="display:none;"></div>
 
-    <form id="surplusForm" novalidate>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label form-label-required" for="foodItem">Food item</label>
-          <input type="text" id="foodItem" name="food_item" class="form-input" placeholder="e.g. Dal Rice" required>
+      <form id="surplusForm" novalidate>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label form-label-required" for="foodItem">Food item</label>
+            <input type="text" id="foodItem" name="food_item" class="form-input" placeholder="e.g. Dal Rice" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label form-label-required" for="quantityKg">Quantity (kg)</label>
+            <input type="number" id="quantityKg" name="quantity_kg" class="form-input" placeholder="e.g. 25" min="0.1" step="0.1" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label form-label-required" for="surplusDate">Date of surplus</label>
+            <input type="date" id="surplusDate" name="date_of_surplus" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label form-label-required" for="expiryHours">Expiry (hours)</label>
+            <input type="number" id="expiryHours" name="expiry_time_hours" class="form-input" placeholder="e.g. 6" min="0.5" step="0.5" required>
+          </div>
         </div>
         <div class="form-group">
-          <label class="form-label form-label-required" for="quantityKg">Quantity (kg)</label>
-          <input type="number" id="quantityKg" name="quantity_kg" class="form-input" placeholder="e.g. 25" min="0.1" step="0.1" required>
+          <label class="form-label form-label-required" for="urgency">Urgency</label>
+          <select id="urgency" name="urgency" class="form-select" required>
+            <option value="">— Select urgency —</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="critical">Critical</option>
+          </select>
         </div>
+        <button type="submit" class="btn btn-success" id="surplusSubmitBtn" onclick="return BS.submitSurplus(event)">
+          <span id="surplusSubmitText">Log Surplus</span>
+          <span class="spinner" id="surplusSpinner" style="display:none;"></span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Quick links panel -->
+  <div class="card">
+    <div class="card-header">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+      <h3>Quick Actions</h3>
+    </div>
+    <div class="card-body">
+      <div class="quick-actions-grid">
+        <a href="{{ url_for('ngo_matches') }}" class="quick-action-card">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>NGO Matching</span>
+        </a>
+        <a href="{{ url_for('route_map') }}" class="quick-action-card">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+          <span>Route Map</span>
+        </a>
+        <a href="{{ url_for('surplus_exchange') }}" class="quick-action-card">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <span>Exchange</span>
+        </a>
+        <a href="{{ url_for('production_planning') }}" class="quick-action-card">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/></svg>
+          <span>Planning</span>
+        </a>
+        <a href="{{ url_for('sustainability_report') }}" class="quick-action-card">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>Sustainability</span>
+        </a>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label form-label-required" for="surplusDate">Date of surplus</label>
-          <input type="date" id="surplusDate" name="date_of_surplus" class="form-input" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label form-label-required" for="expiryHours">Expiry (hours)</label>
-          <input type="number" id="expiryHours" name="expiry_time_hours" class="form-input" placeholder="e.g. 6" min="0.5" step="0.5" required>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label form-label-required" for="urgency">Urgency</label>
-        <select id="urgency" name="urgency" class="form-select" required>
-          <option value="">— Select urgency —</option>
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-          <option value="critical">Critical</option>
-        </select>
-      </div>
-      <button type="submit" class="btn btn-success" id="surplusSubmitBtn" onclick="return BS.submitSurplus(event)">
-        <span id="surplusSubmitText">Log Surplus</span>
-        <span class="spinner" id="surplusSpinner" style="display:none;"></span>
-      </button>
-    </form>
+    </div>
   </div>
 </div>
 
 <!-- ── Surplus Log Table ──────────────────────────────────── -->
 <div class="card section-gap">
   <div class="card-header">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
     <h3>Surplus Log</h3>
     <div class="card-header-actions">
       <button class="btn btn-secondary btn-sm" onclick="BS.loadSurplusLog()">Refresh</button>
@@ -193,7 +232,7 @@
       <span class="spinner spinner-dark"></span> Loading surplus records…
     </div>
     <div class="empty-state" id="surplusLogEmpty" style="display:none;">
-      <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+      <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
       <div class="empty-state-title">No surplus logged yet</div>
       <div class="empty-state-desc">Use the form above to log your first surplus item.</div>
     </div>
@@ -213,7 +252,6 @@
 
 {% block scripts %}
 <script>
-  // Set today's date as default
   document.getElementById('surplusDate').valueAsDate = new Date();
   // Load surplus log and meal dropdown on page load
   document.addEventListener('DOMContentLoaded', () => {

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}NGO Dashboard — BhojanSetu{% endblock %}
-{% block page_title %}NGO Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -11,21 +11,33 @@
 <!-- ── KPI Row ─────────────────────────────────────────── -->
 <div class="kpi-grid">
   <div class="kpi-card">
+    <div class="kpi-icon kpi-icon-green">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    </div>
     <div class="kpi-label">Accepted Matches</div>
     <div class="kpi-value" id="kpiAccepted">—</div>
     <div class="kpi-sub">this month</div>
   </div>
   <div class="kpi-card">
+    <div class="kpi-icon kpi-icon-blue">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>
+    </div>
     <div class="kpi-label">Total Food Received</div>
     <div class="kpi-value" id="kpiFoodReceived">—</div>
     <div class="kpi-sub">kg</div>
   </div>
   <div class="kpi-card">
+    <div class="kpi-icon kpi-icon-orange">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    </div>
     <div class="kpi-label">Meals Served</div>
     <div class="kpi-value" id="kpiMealsServed">—</div>
     <div class="kpi-sub">estimated</div>
   </div>
   <div class="kpi-card">
+    <div class="kpi-icon kpi-icon-purple">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
     <div class="kpi-label">Pending Pickups</div>
     <div class="kpi-value" id="kpiPendingPickups">—</div>
     <div class="kpi-sub">awaiting action</div>
@@ -35,10 +47,11 @@
 <!-- ── Matches Table (Feature 4 + 5) ─────────────────────── -->
 <div class="card section-gap">
   <div class="card-header">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
     <h3>Incoming Matches</h3>
     <div class="card-header-actions">
       <button class="btn btn-secondary btn-sm" onclick="BS.loadNgoMatches()">Refresh</button>
+      <a href="{{ url_for('ngo_matches') }}" class="btn btn-primary btn-sm">View All</a>
     </div>
   </div>
   <div id="ngoMatchesContainer">
@@ -46,11 +59,11 @@
       <span class="spinner spinner-dark"></span> Loading matches…
     </div>
     <div class="empty-state" id="ngoMatchesEmpty" style="display:none;">
-      <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
       <div class="empty-state-title">No matches assigned yet</div>
       <div class="empty-state-desc">Matches will appear here when a kitchen surplus is confirmed for your organisation.</div>
     </div>
-    <div class="alert alert-error" id="ngoMatchesError" style="display:none; margin:1rem;"></div>
+    <div class="alert alert-error" id="ngoMatchesError" style="display:none; margin:var(--space-4);"></div>
     <div class="table-wrap" id="ngoMatchesTable" style="display:none;">
       <table class="data-table">
         <thead>
@@ -75,13 +88,37 @@
 <!-- ── Nutrition Info Panel (Feature 5) ──────────────────── -->
 <div class="card section-gap" id="nutritionPanel" style="display:none;">
   <div class="card-header">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
     <h3>Nutrition Profile — <span id="nutritionFoodName"></span></h3>
   </div>
   <div class="card-body">
     <p id="nutritionPriorityNote" class="alert alert-info" style="display:none;"></p>
     <div class="nutrition-grid" id="nutritionGrid"></div>
     <p class="footnote">Nutrition data source: Indian Food Nutrition dataset (ICMR / NIN). Values are approximate.</p>
+  </div>
+</div>
+
+<!-- ── Quick Actions Row ──────────────────────────────────── -->
+<div class="card section-gap">
+  <div class="card-header">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+    <h3>Quick Actions</h3>
+  </div>
+  <div class="card-body">
+    <div class="quick-actions-grid">
+      <a href="{{ url_for('ngo_matches') }}" class="quick-action-card">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <span>All Matches</span>
+      </a>
+      <a href="{{ url_for('route_map') }}" class="quick-action-card">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+        <span>Route Map</span>
+      </a>
+      <a href="{{ url_for('sustainability_report') }}" class="quick-action-card">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Sustainability</span>
+      </a>
+    </div>
   </div>
 </div>
 {% endblock %}

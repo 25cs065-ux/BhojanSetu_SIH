@@ -113,6 +113,7 @@
 
   /* ── Sidebar ─────────────────────────────────────────────── */
   --sidebar-width: 240px;
+  --sidebar-collapsed-width: 52px;
   --topbar-height: 56px;
 
   /* ── Transitions ─────────────────────────────────────────── */
