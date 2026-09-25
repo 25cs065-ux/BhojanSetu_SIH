@@ -105,14 +105,13 @@ const BS = (function () {
      Response contract: { forecast: [...], surplus_summary: {...} }
      ⚠ PENDING backend wiring
   ══════════════════════════════════════════════════════════ */
-  async function runForecast() {
-    const mealSel   = document.getElementById('forecastMeal');
-    const weeksSel  = document.getElementById('forecastWeeks');
-    const prepQtyEl = document.getElementById('preparedQty');
-    const mealVal   = mealSel?.value;
-    const weeksVal  = weeksSel?.value || '7';
-
-    _apiPending('GET /api/demand');
+    async function runForecast() {
+    const mealSel    = document.getElementById('forecastMeal');
+    const weeksSel    = document.getElementById('forecastWeeks');
+    const prepQtyEl   = document.getElementById('preparedQty');
+    const mealVal     = mealSel?.value;
+    const weeksVal    = weeksSel?.value || '7';
+    const prepQtyRaw  = prepQtyEl?.value || '';
 
     // Show loading, hide states
     hide('forecastEmpty');
@@ -123,9 +122,11 @@ const BS = (function () {
     hide('explainResult');
     show('explainLoading');
 
-    const result = await apiFetch(
-      `/api/demand?meal_id=${encodeURIComponent(mealVal || '')}&weeks=${weeksVal}`
-    );
+    let url = `/api/demand?weeks=${weeksVal}`;
+    if (mealVal) url += `&meal_id=${encodeURIComponent(mealVal)}`;
+    if (prepQtyRaw) url += `&prepared_qty=${encodeURIComponent(prepQtyRaw)}`;
+
+    const result = await apiFetch(url);
 
     hide('forecastLoading');
     hide('explainLoading');
@@ -134,7 +135,6 @@ const BS = (function () {
       showErr('forecastError', result.error);
       show('forecastError');
       show('forecastEmpty');
-      // Explainability: unavailable if forecast failed
       html('explainResult',
         '<div class="alert alert-info" style="margin:0;">Forecast required before explainability can be shown.</div>');
       show('explainResult');
@@ -143,7 +143,7 @@ const BS = (function () {
 
     const forecastRows = result.data?.forecast || [];
     const surplusSum   = result.data?.surplus_summary || null;
-    const prepQty      = parseFloat(prepQtyEl?.value) || null;
+    const prepQty       = parseFloat(prepQtyRaw) || null;
 
     // Feature 1: Render demand chart
     show('forecastResult');
@@ -352,7 +352,7 @@ const BS = (function () {
     show('matchesLoading');
 
     const result = await apiFetch(
-      `/api/matches?surplus_id=${encodeURIComponent(surplusId || '')}`
+      `/api/matches/find?surplus_id=${encodeURIComponent(surplusId || '')}`
     );
     hide('matchesLoading');
 
@@ -1115,12 +1115,31 @@ const BS = (function () {
     show('adminSustainData');
   }
 
+  /* ── Load meals/centers dropdown for demand forecast ────── */
+  async function loadMealsDropdown() {
+    const sel = document.getElementById('forecastMeal');
+    if (!sel) return;
+
+    const result = await apiFetch('/api/meals');
+    if (!result.ok || !result.data) return;
+
+    const meals = result.data.meals || [];
+    if (!meals.length) {
+      sel.innerHTML = '<option value="">No meal data available (model loading…)</option>';
+      return;
+    }
+    sel.innerHTML = meals.map(m =>
+      `<option value="${esc(String(m))}">Meal ${esc(String(m))}</option>`
+    ).join('');
+  }
+
   /* ── Expose public API ────────────────────────────────── */
   return {
     // Feature 1+2
     runForecast,
     loadSurplusLog,
     submitSurplus,
+    loadMealsDropdown,
     loadSurplusForMatchSelect,
     loadSurplusForRouteSelect,
     // Feature 3

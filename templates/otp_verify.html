@@ -1,60 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Verify OTP — BhojanSetu</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body style="background:var(--color-bg); display:flex; align-items:center; justify-content:center; min-height:100vh;">
 
-<div class="auth-form-box" style="max-width:400px; text-align:center;">
-  <img src="{{ url_for('static', filename='images/sihr2logo.jpeg') }}"
-       alt="BhojanSetu" style="width:56px; margin:0 auto var(--space-4);">
+  <div class="auth-form-box" style="max-width:400px; text-align:center;">
+    <img src="{{ url_for('static', filename='images/sihr2logo.jpeg') }}" alt="BhojanSetu"
+      style="width:56px; margin:0 auto var(--space-4);">
 
-  <h2 style="margin-bottom:var(--space-2);">Verify your email</h2>
-  <p class="subtitle">Enter the 6-digit OTP sent to<br><strong>{{ session.get('pending_email', 'your email') }}</strong></p>
+    <h2 style="margin-bottom:var(--space-2);">Verify your email</h2>
+    <p class="subtitle">Enter the 6-digit OTP sent to<br><strong>{{ session.get('pending_email', 'your email')
+        }}</strong></p>
 
-  <!-- ⚠ Backend integration pending: POST /auth/verify-otp -->
-  <div class="pending-notice" style="text-align:left;">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-    Backend integration pending — OTP verification not yet wired
-  </div>
-
-  <div class="alert alert-error" id="otpError" style="display:none; text-align:left;" role="alert">
-    <span id="otpErrorMsg">Invalid or expired OTP. Please try again.</span>
-  </div>
-
-  <form id="otpForm" method="POST" action="{{ url_for('auth.verify_otp') }}" novalidate>
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
-
-    <div class="form-group" style="margin-bottom:var(--space-5);">
-      <label class="form-label" for="otp" style="text-align:left; display:block;">One-time passcode</label>
-      <input type="text" id="otp" name="otp" class="form-input"
-             placeholder="123456"
-             maxlength="6" inputmode="numeric" pattern="[0-9]{6}"
-             autocomplete="one-time-code"
-             style="text-align:center; font-size:1.5rem; letter-spacing:.4rem; font-weight:700;"
-             required>
-      <span class="form-error" id="otpErr" style="display:none; text-align:left;"></span>
+    <div class="alert alert-error" id="otpError" style="display:none; text-align:left;" role="alert">
+      <span id="otpErrorMsg">Invalid or expired OTP. Please try again.</span>
     </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ 'error' if category == 'error' else 'success' }}"
+      style="text-align:left; margin-bottom:var(--space-4);">
+      {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+    <form id="otpForm" method="POST" action="{{ url_for('auth.verify_otp') }}" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
 
-    <button type="submit" class="btn btn-primary btn-block btn-lg" id="otpBtn">
-      <span id="otpBtnText">Verify OTP</span>
-      <span class="spinner" id="otpSpinner" style="display:none"></span>
-    </button>
-  </form>
+      <div class="form-group" style="margin-bottom:var(--space-5);">
+        <label class="form-label" for="otp" style="text-align:left; display:block;">One-time passcode</label>
+        <input type="text" id="otp" name="otp" class="form-input" placeholder="123456" maxlength="6" inputmode="numeric"
+          pattern="[0-9]{6}" autocomplete="one-time-code"
+          style="text-align:center; font-size:1.5rem; letter-spacing:.4rem; font-weight:700;" required>
+        <span class="form-error" id="otpErr" style="display:none; text-align:left;"></span>
+      </div>
 
-  <p style="margin-top:var(--space-4); font-size:0.85rem; color:var(--color-text-muted);">
-    Didn't receive a code?
-    <a href="{{ url_for('auth.resend_otp') }}" id="resendLink">Resend OTP</a>
-  </p>
+      <button type="submit" class="btn btn-primary btn-block btn-lg" id="otpBtn">
+        <span id="otpBtnText">Verify OTP</span>
+        <span class="spinner" id="otpSpinner" style="display:none"></span>
+      </button>
+    </form>
 
-  <p style="margin-top:var(--space-3); font-size:0.8rem; color:var(--color-text-light);">
-    <a href="{{ url_for('auth.login') }}">&larr; Back to sign in</a>
-  </p>
-</div>
+    <p style="margin-top:var(--space-4); font-size:0.85rem; color:var(--color-text-muted);">
+      Didn't receive a code?
+      <a href="{{ url_for('auth.resend_otp') }}" id="resendLink">Resend OTP</a>
+    </p>
 
-<script src="{{ url_for('static', filename='js/login.js') }}"></script>
+    <p style="margin-top:var(--space-3); font-size:0.8rem; color:var(--color-text-light);">
+      <a href="{{ url_for('auth.login') }}">&larr; Back to sign in</a>
+    </p>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/login.js') }}"></script>
 </body>
+
 </html>

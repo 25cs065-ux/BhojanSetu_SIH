@@ -3,12 +3,6 @@
 {% block page_title %}Kitchen Dashboard{% endblock %}
 
 {% block content %}
-<!-- ⚠ All API sections below are pending backend wiring -->
-<div class="pending-notice">
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-  Backend integration pending — all data sections below require API wiring (app.py + routes)
-</div>
-
 <div class="page-header">
   <h1>Kitchen Dashboard</h1>
   <p>{{ session.get('institution', 'Your Kitchen') }} — Manage surplus, demand forecasts and redistribution</p>
@@ -53,7 +47,7 @@
         <div class="form-group" style="margin-bottom:0">
           <label class="form-label" for="forecastMeal">Meal / Center</label>
           <select id="forecastMeal" class="form-select">
-            <option value="">Loading meals… (API pending)</option>
+            <option value="">Loading meals…</option>
           </select>
         </div>
         <div class="form-group" style="margin-bottom:0">
@@ -221,7 +215,10 @@
 <script>
   // Set today's date as default
   document.getElementById('surplusDate').valueAsDate = new Date();
-  // Load surplus log on page load
-  document.addEventListener('DOMContentLoaded', () => BS.loadSurplusLog());
+  // Load surplus log and meal dropdown on page load
+  document.addEventListener('DOMContentLoaded', () => {
+    BS.loadSurplusLog();
+    BS.loadMealsDropdown();
+  });
 </script>
 {% endblock %}

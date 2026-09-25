@@ -1,13 +1,26 @@
-# BhojanSetu - Combined Project Dependencies
+# BhojanSetu — Project Dependencies
+# Generated after integration (all packages are actually used)
 
+# ── Web Framework ────────────────────────────────────────────────
+flask>=3.0.0
+
+# ── Data & ML ────────────────────────────────────────────────────
 pandas>=2.0.0
 numpy>=1.24.0
 scikit-learn>=1.3.0
+
+# ── PDF Report Generation ────────────────────────────────────────
 reportlab>=4.0.0
+
+# ── Testing ──────────────────────────────────────────────────────
 pytest>=7.0.0
 
-# Optional: Time-series forecasting
+# ── Optional: Time-series forecasting (not currently used) ───────
 # prophet>=1.1.0
 
-# Optional: Advanced explainability
+# ── Optional: Advanced SHAP explainability (not currently used) ──
 # shap>=0.44.0
+
+# ── Standard library only (no extra packages needed for):
+# hashlib, hmac, json, csv, threading, pathlib, uuid, math,
+# datetime, logging, os, re, io, time, random, string, csv
