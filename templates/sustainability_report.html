@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}Sustainability Report — BhojanSetu{% endblock %}
+{% block page_title %}Sustainability &amp; ESG Report{% endblock %}
+
+{% block content %}
+<div class="pending-notice">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+  Backend integration pending — sustainability and report download APIs not yet wired
+</div>
+
+<div class="page-header">
+  <h1>Sustainability &amp; Carbon Impact Analytics</h1>
+  <p>Feature 8 + 9 — Environmental metrics and auto-generated ESG/CSR donation report</p>
+</div>
+
+<!-- ── Metric Cards ───────────────────────────────────────── -->
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-label">Food Redistributed</div>
+    <div class="kpi-value" id="metricRedistributed">—</div>
+    <div class="kpi-sub">kg total</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Food Waste Avoided</div>
+    <div class="kpi-value" id="metricWasteAvoided">—</div>
+    <div class="kpi-sub">kg</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Meals Redistributed</div>
+    <div class="kpi-value" id="metricMeals">—</div>
+    <div class="kpi-sub" id="metricMealsSrc">total</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">CO₂e Avoided <small style="font-weight:400;">(ESTIMATED)</small></div>
+    <div class="kpi-value" id="metricCo2">—</div>
+    <div class="kpi-sub">kg CO₂e</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Water Saved <small style="font-weight:400;">(ESTIMATED)</small></div>
+    <div class="kpi-value" id="metricWater">—</div>
+    <div class="kpi-sub">litres</div>
+  </div>
+</div>
+
+<div class="loading-block" id="sustainLoading">
+  <span class="spinner spinner-dark"></span> Loading sustainability data…
+</div>
+<div class="alert alert-error" id="sustainError" style="display:none;"></div>
+
+<!-- ── Trend Chart ────────────────────────────────────────── -->
+<div class="card section-gap" id="trendCard" style="display:none;">
+  <div class="card-header">
+    <h3>Redistribution Trend</h3>
+    <div class="card-header-actions" id="trendBadge"></div>
+  </div>
+  <div class="card-body">
+    <div class="chart-container">
+      <canvas id="sustainTrendChart" height="180"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ── By-Kitchen Table ──────────────────────────────────── -->
+<div class="card section-gap" id="byKitchenCard" style="display:none;">
+  <div class="card-header">
+    <h3>Breakdown by Kitchen</h3>
+    <div class="card-header-actions">
+      <button class="btn btn-secondary btn-sm" onclick="BS.loadSustainability()">Refresh</button>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Kitchen ID</th>
+          <th>Food Redistributed (kg)</th>
+          <th>Waste Avoided (kg)</th>
+          <th>Meals</th>
+          <th>CO₂e (EST.)</th>
+          <th>Water (EST.)</th>
+        </tr>
+      </thead>
+      <tbody id="byKitchenBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="empty-state" id="sustainEmpty" style="display:none;">
+  <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+  <div class="empty-state-title">No sustainability data available yet</div>
+  <div class="empty-state-desc">Data appears here once surplus redistribution activities are logged.</div>
+</div>
+
+<!-- ── Feature 9: ESG Report Download ────────────────────── -->
+<div class="card section-gap">
+  <div class="card-header">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    <h3>Generate ESG / CSR Report (PDF)</h3>
+  </div>
+  <div class="card-body">
+    <div class="alert alert-warning" style="margin-bottom:var(--space-4);">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span>DISCLAIMER: This is a system-generated report for internal awareness only. CO₂e and water values are ESTIMATED — not scientifically measured. Not certified for ESG/CSR compliance.</span>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="reportInstitution">Institution name</label>
+        <input type="text" id="reportInstitution" class="form-input"
+               value="{{ session.get('institution', '') }}"
+               placeholder="e.g. IIT Delhi Central Kitchen">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="reportStart">Reporting period start</label>
+        <input type="date" id="reportStart" class="form-input">
+      </div>
+    </div>
+    <div class="form-group" style="max-width:260px;">
+      <label class="form-label" for="reportEnd">Reporting period end</label>
+      <input type="date" id="reportEnd" class="form-input">
+    </div>
+
+    <div class="alert alert-error" id="reportError" style="display:none;"></div>
+    <div class="alert alert-success" id="reportSuccess" style="display:none;"></div>
+
+    <button class="btn btn-primary" id="downloadReportBtn" onclick="BS.downloadReport()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span id="reportBtnText">Download PDF Report</span>
+      <span class="spinner" id="reportSpinner" style="display:none;"></span>
+    </button>
+  </div>
+</div>
+
+<p class="footnote" style="margin-top:var(--space-6);">
+  Methodology: CO₂e estimates use median emission factor of 1.6 kg CO₂e/kg food (Poore &amp; Nemecek 2018, Science 360:6392, verified from datasets/Food_Production.csv).
+  Water savings use 417.1 L/kg food (median freshwater withdrawal, same source).
+  Meals estimated at 0.5 kg/meal (WHO/FSSAI institutional norm). All values labelled ESTIMATED.
+</p>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    BS.loadSustainability();
+    // Set sensible default date range (current month)
+    const now = new Date();
+    const y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0');
+    document.getElementById('reportStart').value = `${y}-${m}-01`;
+    document.getElementById('reportEnd').valueAsDate = now;
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard — BhojanSetu{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="pending-notice">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+  Backend integration pending — data sections require API wiring
+</div>
+
+<div class="page-header">
+  <h1>Admin Dashboard</h1>
+  <p>System-wide overview of kitchens, NGOs, matches and sustainability</p>
+</div>
+
+<!-- ── KPI Row ──────────────────────────────────────────── -->
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-label">Total Kitchens</div>
+    <div class="kpi-value" id="kpiKitchens">—</div>
+    <div class="kpi-sub">registered</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Active NGOs</div>
+    <div class="kpi-value" id="kpiNgos">—</div>
+    <div class="kpi-sub">in system</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Total Matches</div>
+    <div class="kpi-value" id="kpiTotalMatches">—</div>
+    <div class="kpi-sub">all time</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Surplus Logged</div>
+    <div class="kpi-value" id="kpiTotalSurplus">—</div>
+    <div class="kpi-sub">kg total</div>
+  </div>
+</div>
+
+<div class="grid-2 section-gap">
+  <!-- ── Kitchens Table ─────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Registered Kitchens</h3>
+      <div class="card-header-actions">
+        <button class="btn btn-secondary btn-sm" onclick="BS.loadAdminKitchens()">Refresh</button>
+      </div>
+    </div>
+    <div id="kitchensContainer">
+      <div class="loading-block" id="kitchensLoading">
+        <span class="spinner spinner-dark"></span> Loading…
+      </div>
+      <div class="empty-state" id="kitchensEmpty" style="display:none;">
+        <div class="empty-state-title">No kitchens found</div>
+      </div>
+      <div class="alert alert-error" id="kitchensError" style="display:none; margin:1rem;"></div>
+      <div class="table-wrap" id="kitchensTable" style="display:none;">
+        <table class="data-table">
+          <thead><tr><th>ID</th><th>Name</th><th>Location</th></tr></thead>
+          <tbody id="kitchensBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── NGOs Table ────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">
+      <h3>NGOs / Recipients</h3>
+      <div class="card-header-actions">
+        <button class="btn btn-secondary btn-sm" onclick="BS.loadAdminNgos()">Refresh</button>
+      </div>
+    </div>
+    <div id="ngosContainer">
+      <div class="loading-block" id="ngosLoading">
+        <span class="spinner spinner-dark"></span> Loading…
+      </div>
+      <div class="empty-state" id="ngosEmpty" style="display:none;">
+        <div class="empty-state-title">No NGOs found</div>
+      </div>
+      <div class="alert alert-error" id="ngosError" style="display:none; margin:1rem;"></div>
+      <div class="table-wrap" id="ngosTable" style="display:none;">
+        <table class="data-table">
+          <thead><tr><th>ID</th><th>Name</th><th>Capacity (kg)</th><th>Status</th></tr></thead>
+          <tbody id="ngosBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── All Matches ────────────────────────────────────────── -->
+<div class="card section-gap">
+  <div class="card-header">
+    <h3>All Matches</h3>
+    <div class="card-header-actions">
+      <button class="btn btn-secondary btn-sm" onclick="BS.loadAdminMatches()">Refresh</button>
+    </div>
+  </div>
+  <div id="allMatchesContainer">
+    <div class="loading-block" id="allMatchesLoading">
+      <span class="spinner spinner-dark"></span> Loading…
+    </div>
+    <div class="empty-state" id="allMatchesEmpty" style="display:none;">
+      <div class="empty-state-title">No matches recorded yet</div>
+    </div>
+    <div class="alert alert-error" id="allMatchesError" style="display:none; margin:1rem;"></div>
+    <div class="table-wrap" id="allMatchesTable" style="display:none;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Match ID</th><th>Kitchen</th><th>NGO</th><th>Food Item</th>
+            <th>Qty (kg)</th><th>Score</th><th>Status</th><th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="allMatchesBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ── Sustainability Summary ─────────────────────────────── -->
+<div class="card section-gap">
+  <div class="card-header">
+    <h3>Sustainability Summary</h3>
+    <div class="card-header-actions">
+      <a href="{{ url_for('sustainability_report') }}" class="btn btn-secondary btn-sm">Full Report →</a>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="loading-block" id="adminSustainLoading">
+      <span class="spinner spinner-dark"></span> Loading sustainability data…
+    </div>
+    <div class="alert alert-error" id="adminSustainError" style="display:none;"></div>
+    <div id="adminSustainData" style="display:none;">
+      <div class="kpi-grid" style="grid-template-columns: repeat(3,1fr); margin:0;">
+        <div class="kpi-card">
+          <div class="kpi-label">Food Redistributed</div>
+          <div class="kpi-value" id="adminRedistributed">—</div>
+          <div class="kpi-sub">kg total</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">CO₂e Avoided</div>
+          <div class="kpi-value" id="adminCo2">—</div>
+          <div class="kpi-sub">kg ESTIMATED</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Meals Redistributed</div>
+          <div class="kpi-value" id="adminMeals">—</div>
+          <div class="kpi-sub">total</div>
+        </div>
+      </div>
+      <p class="footnote">CO₂e and water values are ESTIMATED. Source: Poore &amp; Nemecek 2018, median emission factor 1.6 kg CO₂e/kg food.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    BS.loadAdminKitchens();
+    BS.loadAdminNgos();
+    BS.loadAdminMatches();
+    BS.loadAdminSustainability();
+  });
+</script>
+{% endblock %}

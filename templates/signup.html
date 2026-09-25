@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account — BhojanSetu</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="auth-wrapper">
+  <div class="auth-brand-panel">
+    <img src="{{ url_for('static', filename='images/sihr2logo.jpeg') }}" alt="BhojanSetu">
+    <h1>BhojanSetu</h1>
+    <p>Join the network of kitchens and NGOs working together to eliminate food waste and feed communities.</p>
+  </div>
+
+  <div class="auth-form-panel">
+    <div class="auth-form-box" style="max-width:480px">
+      <h2>Create your account</h2>
+      <p class="subtitle">Get started with BhojanSetu</p>
+
+      <!-- ⚠ Backend integration pending: POST /auth/signup -->
+      <div class="pending-notice">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Backend integration pending — signup route not yet wired
+      </div>
+
+      <div class="alert alert-error" id="signupError" style="display:none" role="alert">
+        <span id="signupErrorMsg"></span>
+      </div>
+
+      <form id="signupForm" method="POST" action="{{ url_for('auth.signup') }}" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label form-label-required" for="full_name">Full name</label>
+            <input type="text" id="full_name" name="full_name" class="form-input"
+                   placeholder="Ravi Kumar" autocomplete="name" required>
+            <span class="form-error" id="nameErr" style="display:none"></span>
+          </div>
+          <div class="form-group">
+            <label class="form-label form-label-required" for="role">Role</label>
+            <select id="role" name="role" class="form-select" required>
+              <option value="">— Select role —</option>
+              <option value="kitchen">Kitchen (Institution)</option>
+              <option value="ngo">NGO / Recipient</option>
+            </select>
+            <span class="form-error" id="roleErr" style="display:none"></span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label form-label-required" for="institution">Institution / Organisation name</label>
+          <input type="text" id="institution" name="institution" class="form-input"
+                 placeholder="IIT Delhi Central Kitchen" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label form-label-required" for="reg_email">Email address</label>
+          <input type="email" id="reg_email" name="email" class="form-input"
+                 placeholder="you@institution.edu" autocomplete="email" required>
+          <span class="form-error" id="regEmailErr" style="display:none"></span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label form-label-required" for="reg_password">Password</label>
+            <input type="password" id="reg_password" name="password" class="form-input"
+                   placeholder="Min. 8 characters" autocomplete="new-password" required minlength="8">
+            <span class="form-error" id="regPwdErr" style="display:none"></span>
+          </div>
+          <div class="form-group">
+            <label class="form-label form-label-required" for="confirm_password">Confirm password</label>
+            <input type="password" id="confirm_password" name="confirm_password" class="form-input"
+                   placeholder="Repeat password" autocomplete="new-password" required>
+            <span class="form-error" id="confirmPwdErr" style="display:none"></span>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="signupBtn">
+          <span id="signupBtnText">Create Account</span>
+          <span class="spinner" id="signupSpinner" style="display:none"></span>
+        </button>
+      </form>
+
+      <hr class="divider" style="margin-top:1.5rem">
+      <p style="text-align:center; font-size:0.85rem; color:var(--color-text-muted);">
+        Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/login.js') }}"></script>
+</body>
+</html>

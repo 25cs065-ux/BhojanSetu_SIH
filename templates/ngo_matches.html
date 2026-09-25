@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}NGO Matches — BhojanSetu{% endblock %}
+{% block page_title %}NGO &amp; Recipient Matching{% endblock %}
+
+{% block content %}
+<div class="pending-notice">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+  Backend integration pending — GET /api/matches and POST /api/matches/confirm not yet wired
+</div>
+
+<div class="page-header">
+  <h1>NGO &amp; Recipient Matching</h1>
+  <p>Feature 4 + 5 — AI-Based NGO Matching with Nutrition Awareness</p>
+</div>
+
+<!-- ── Surplus selector ────────────────────────────────── -->
+<div class="card section-gap">
+  <div class="card-header">
+    <h3>Select Surplus Item</h3>
+  </div>
+  <div class="card-body">
+    <div class="form-row">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label" for="matchSurplusSelect">Surplus item</label>
+        <select id="matchSurplusSelect" class="form-select">
+          <option value="">— Load surplus items (API pending) —</option>
+        </select>
+      </div>
+      <div style="display:flex; align-items:flex-end;">
+        <button class="btn btn-primary" id="findMatchesBtn" onclick="BS.findMatches()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Find Matches
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Results ────────────────────────────────────────────── -->
+<div class="loading-block" id="matchesLoading" style="display:none;">
+  <span class="spinner spinner-dark"></span> Finding best NGO matches…
+</div>
+
+<div class="alert alert-error" id="matchesError" style="display:none;"></div>
+
+<div class="empty-state" id="matchesEmpty">
+  <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+  <div class="empty-state-title">No matches shown yet</div>
+  <div class="empty-state-desc">Select a surplus item and click <em>Find Matches</em> to see ranked NGO candidates.</div>
+</div>
+
+<div id="matchesResultsList" style="display:none;">
+  <!-- match cards injected here by dashboard.js -->
+</div>
+
+<!-- Match card TEMPLATE (hidden, cloned by JS) -->
+<template id="matchCardTemplate">
+  <div class="card section-gap match-card">
+    <div class="card-body">
+      <div style="display:flex; align-items:flex-start; gap:var(--space-4); flex-wrap:wrap;">
+        <div style="flex:1; min-width:200px;">
+          <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-2);">
+            <span style="font-weight:700; font-size:var(--font-md);" class="mc-name"></span>
+            <span class="badge mc-urgency-badge"></span>
+          </div>
+          <div class="info-row"><strong>Location</strong><span class="mc-location"></span></div>
+          <div class="info-row"><strong>Distance</strong><span class="mc-distance"></span></div>
+          <div class="info-row"><strong>Capacity</strong><span class="mc-capacity"></span></div>
+        </div>
+        <div style="min-width:160px;">
+          <div class="kpi-label" style="margin-bottom:var(--space-1);">Composite Score</div>
+          <div class="score-bar-wrap">
+            <div class="score-bar-track" style="flex:1;"><div class="score-bar-fill mc-score-fill"></div></div>
+            <span class="score-bar-label mc-score-val"></span>
+          </div>
+          <!-- Sub-scores -->
+          <div class="sub-scores mc-sub-scores"></div>
+        </div>
+      </div>
+
+      <!-- Nutrition (Feature 5) -->
+      <div class="mc-nutrition-section" style="display:none; margin-top:var(--space-3);">
+        <span class="badge badge-conf-HIGH mc-nutrition-priority" style="margin-bottom:var(--space-2);"></span>
+        <p class="mc-nutrition-reason" style="font-size:var(--font-xs); color:var(--color-text-muted);"></p>
+        <div class="nutrition-grid mc-nutrition-grid"></div>
+        <p class="footnote">Nutrition source: Indian Food Nutrition dataset (ICMR/NIN).</p>
+      </div>
+
+      <!-- Reasons -->
+      <div style="margin-top:var(--space-3);">
+        <button class="collapse-toggle" aria-expanded="false" aria-controls="reasons-PLACEHOLDER">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          Show scoring reasons
+        </button>
+        <div class="collapse-content" id="reasons-PLACEHOLDER">
+          <ul class="reasons-list mc-reasons-list"></ul>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div style="margin-top:var(--space-4); display:flex; gap:var(--space-2);">
+        <button class="btn btn-success btn-sm mc-confirm-btn">Confirm Match</button>
+        <a href="{{ url_for('route_map') }}" class="btn btn-secondary btn-sm mc-route-btn">View Route</a>
+      </div>
+    </div>
+  </div>
+</template>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => BS.loadSurplusForMatchSelect());
+</script>
+{% endblock %}

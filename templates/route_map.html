@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Route Map — BhojanSetu{% endblock %}
+{% block page_title %}Route Optimisation{% endblock %}
+
+{% block content %}
+<div class="pending-notice">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+  Backend integration pending — GET /api/route not yet wired
+</div>
+
+<div class="page-header">
+  <h1>Pickup &amp; Route Optimisation</h1>
+  <p>Feature 6 — Software-based nearest-neighbour route planning. No live GPS required.</p>
+</div>
+
+<!-- ── Controls ───────────────────────────────────────────── -->
+<div class="card section-gap">
+  <div class="card-body">
+    <div class="form-row">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label" for="routeSurplusSelect">Select surplus / match</label>
+        <select id="routeSurplusSelect" class="form-select">
+          <option value="">— Load surplus items (API pending) —</option>
+        </select>
+      </div>
+      <div style="display:flex; align-items:flex-end;">
+        <button class="btn btn-primary" id="optimiseRouteBtn" onclick="BS.optimiseRoute()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+          Optimise Route
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Map ───────────────────────────────────────────────── -->
+<div class="card section-gap">
+  <div class="card-header">
+    <h3>Route Map</h3>
+    <div class="card-header-actions" id="routeDistanceBadge" style="display:none;">
+      <span class="badge badge-status-confirmed">
+        Total: <span id="routeTotalKm"></span> km
+      </span>
+    </div>
+  </div>
+  <div style="position:relative;">
+    <div id="map" class="map-container">
+      <!-- Placeholder shown before any route loads -->
+      <div class="map-placeholder" id="mapPlaceholder">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity=".35"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+        <span>Select a surplus item and click <em>Optimise Route</em></span>
+      </div>
+    </div>
+    <div class="loading-block" id="mapLoading" style="display:none; position:absolute; inset:0; background:rgba(255,255,255,.8); z-index:20;">
+      <span class="spinner spinner-dark"></span> Calculating route…
+    </div>
+  </div>
+</div>
+
+<!-- ── Stop list ─────────────────────────────────────────── -->
+<div class="card section-gap" id="stopListCard" style="display:none;">
+  <div class="card-header">
+    <h3>Stop Details</h3>
+  </div>
+  <div class="card-body" id="stopListBody">
+    <!-- Injected by map.js -->
+  </div>
+  <!-- Route warnings -->
+  <div id="routeWarnings" style="display:none;">
+    <div class="card-footer">
+      <strong style="color:var(--color-warning);">⚠ Warnings:</strong>
+      <ul id="routeWarningList" class="reasons-list" style="margin-top:var(--space-2);"></ul>
+    </div>
+  </div>
+</div>
+
+<div class="alert alert-error" id="routeError" style="display:none;"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    BS.loadSurplusForRouteSelect();
+  });
+</script>
+{% endblock %}

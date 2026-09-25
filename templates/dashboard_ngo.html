@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}NGO Dashboard — BhojanSetu{% endblock %}
+{% block page_title %}NGO Dashboard{% endblock %}
+
+{% block content %}
+<div class="pending-notice">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+  Backend integration pending — data sections require API wiring
+</div>
+
+<div class="page-header">
+  <h1>NGO Dashboard</h1>
+  <p>{{ session.get('institution', 'Your Organisation') }} — Track incoming matches and food pickups</p>
+</div>
+
+<!-- ── KPI Row ─────────────────────────────────────────── -->
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-label">Accepted Matches</div>
+    <div class="kpi-value" id="kpiAccepted">—</div>
+    <div class="kpi-sub">this month</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Total Food Received</div>
+    <div class="kpi-value" id="kpiFoodReceived">—</div>
+    <div class="kpi-sub">kg</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Meals Served</div>
+    <div class="kpi-value" id="kpiMealsServed">—</div>
+    <div class="kpi-sub">estimated</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Pending Pickups</div>
+    <div class="kpi-value" id="kpiPendingPickups">—</div>
+    <div class="kpi-sub">awaiting action</div>
+  </div>
+</div>
+
+<!-- ── Matches Table (Feature 4 + 5) ─────────────────────── -->
+<div class="card section-gap">
+  <div class="card-header">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    <h3>Incoming Matches</h3>
+    <div class="card-header-actions">
+      <button class="btn btn-secondary btn-sm" onclick="BS.loadNgoMatches()">Refresh</button>
+    </div>
+  </div>
+  <div id="ngoMatchesContainer">
+    <div class="loading-block" id="ngoMatchesLoading">
+      <span class="spinner spinner-dark"></span> Loading matches…
+    </div>
+    <div class="empty-state" id="ngoMatchesEmpty" style="display:none;">
+      <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      <div class="empty-state-title">No matches assigned yet</div>
+      <div class="empty-state-desc">Matches will appear here when a kitchen surplus is confirmed for your organisation.</div>
+    </div>
+    <div class="alert alert-error" id="ngoMatchesError" style="display:none; margin:1rem;"></div>
+    <div class="table-wrap" id="ngoMatchesTable" style="display:none;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Food Item</th>
+            <th>Kitchen</th>
+            <th>Qty (kg)</th>
+            <th>Distance (km)</th>
+            <th>Score</th>
+            <th>Urgency</th>
+            <th>Nutrition</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="ngoMatchesBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ── Nutrition Info Panel (Feature 5) ──────────────────── -->
+<div class="card section-gap" id="nutritionPanel" style="display:none;">
+  <div class="card-header">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+    <h3>Nutrition Profile — <span id="nutritionFoodName"></span></h3>
+  </div>
+  <div class="card-body">
+    <p id="nutritionPriorityNote" class="alert alert-info" style="display:none;"></p>
+    <div class="nutrition-grid" id="nutritionGrid"></div>
+    <p class="footnote">Nutrition data source: Indian Food Nutrition dataset (ICMR / NIN). Values are approximate.</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => BS.loadNgoMatches());
+</script>
+{% endblock %}

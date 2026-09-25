@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% block title %}Kitchen Dashboard — BhojanSetu{% endblock %}
+{% block page_title %}Kitchen Dashboard{% endblock %}
+
+{% block content %}
+<!-- ⚠ All API sections below are pending backend wiring -->
+<div class="pending-notice">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+  Backend integration pending — all data sections below require API wiring (app.py + routes)
+</div>
+
+<div class="page-header">
+  <h1>Kitchen Dashboard</h1>
+  <p>{{ session.get('institution', 'Your Kitchen') }} — Manage surplus, demand forecasts and redistribution</p>
+</div>
+
+<!-- ── KPI Row ──────────────────────────────────────────── -->
+<div class="kpi-grid" id="kpiRow">
+  <div class="kpi-card">
+    <div class="kpi-label">Total Surplus This Month</div>
+    <div class="kpi-value" id="kpiSurplus">—</div>
+    <div class="kpi-sub">kg logged</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Pending Matches</div>
+    <div class="kpi-value" id="kpiMatches">—</div>
+    <div class="kpi-sub">awaiting confirmation</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">CO₂e Avoided</div>
+    <div class="kpi-value" id="kpiCo2">—</div>
+    <div class="kpi-sub">kg ESTIMATED</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Meals Redistributed</div>
+    <div class="kpi-value" id="kpiMeals">—</div>
+    <div class="kpi-sub">this month</div>
+  </div>
+</div>
+
+<!-- ── Main grid ────────────────────────────────────────── -->
+<div class="grid-2 section-gap">
+
+  <!-- Feature 1 + 2: Demand Forecast + Surplus Prediction -->
+  <div class="card">
+    <div class="card-header">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <h3>AI Demand Forecast &amp; Surplus Prediction</h3>
+    </div>
+    <div class="card-body">
+      <!-- Feature 1: Forecast inputs -->
+      <div class="form-row" style="margin-bottom:var(--space-4);">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" for="forecastMeal">Meal / Center</label>
+          <select id="forecastMeal" class="form-select">
+            <option value="">Loading meals… (API pending)</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" for="forecastWeeks">Weeks ahead</label>
+          <select id="forecastWeeks" class="form-select">
+            <option value="4">4 weeks</option>
+            <option value="7" selected>7 weeks</option>
+            <option value="12">12 weeks</option>
+          </select>
+        </div>
+      </div>
+      <!-- Feature 2: Prepared qty -->
+      <div class="form-group">
+        <label class="form-label" for="preparedQty">Prepared quantity (units, for surplus calculation)</label>
+        <input type="number" id="preparedQty" class="form-input" placeholder="e.g. 450" min="0" step="1">
+        <span class="form-hint">Enter the quantity you plan to prepare to see surplus risk</span>
+      </div>
+
+      <button class="btn btn-primary" id="runForecastBtn" onclick="BS.runForecast()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Run Forecast
+      </button>
+
+      <!-- Loading state -->
+      <div class="loading-block" id="forecastLoading" style="display:none;">
+        <span class="spinner spinner-dark"></span> Running forecast…
+      </div>
+
+      <!-- Error state -->
+      <div class="alert alert-error" id="forecastError" style="display:none; margin-top:1rem;"></div>
+
+      <!-- Demand chart — shown after forecast runs -->
+      <div id="forecastResult" style="display:none; margin-top:var(--space-4);">
+        <!-- Feature 2: Surplus risk badge -->
+        <div id="surplusRiskBadge" style="margin-bottom:var(--space-3);"></div>
+        <div class="chart-container">
+          <canvas id="demandChart" height="200"></canvas>
+        </div>
+        <p class="footnote" id="forecastNote"></p>
+      </div>
+
+      <!-- Empty state (before any forecast) -->
+      <div class="empty-state" id="forecastEmpty">
+        <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <div class="empty-state-title">No forecast yet</div>
+        <div class="empty-state-desc">Select a meal and click <em>Run Forecast</em> to see AI-predicted demand and surplus risk.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feature 10: Explainability Panel -->
+  <div class="card">
+    <div class="card-header">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <h3>Explainable AI — Why this prediction?</h3>
+    </div>
+    <div class="card-body">
+      <div class="empty-state" id="explainEmpty">
+        <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <div class="empty-state-title">Run a forecast first</div>
+        <div class="empty-state-desc">Explainability panel shows feature importances after a forecast is run.</div>
+      </div>
+
+      <div id="explainResult" style="display:none;">
+        <div id="explainUnavailable" class="alert alert-info" style="display:none;">
+          Explainability not available for this model configuration.
+        </div>
+        <div id="explainChart" style="display:none;">
+          <div class="chart-container">
+            <canvas id="featureImportanceChart" height="220"></canvas>
+          </div>
+          <p class="footnote" id="explainNote"></p>
+        </div>
+      </div>
+
+      <div class="loading-block" id="explainLoading" style="display:none;">
+        <span class="spinner spinner-dark"></span> Loading explanation…
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Log Surplus Form ──────────────────────────────────── -->
+<div class="card section-gap">
+  <div class="card-header">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+    <h3>Log Surplus Food</h3>
+  </div>
+  <div class="card-body">
+    <div class="alert alert-error" id="surplusFormError" style="display:none;"></div>
+    <div class="alert alert-success" id="surplusFormSuccess" style="display:none;"></div>
+
+    <form id="surplusForm" novalidate>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label form-label-required" for="foodItem">Food item</label>
+          <input type="text" id="foodItem" name="food_item" class="form-input" placeholder="e.g. Dal Rice" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label form-label-required" for="quantityKg">Quantity (kg)</label>
+          <input type="number" id="quantityKg" name="quantity_kg" class="form-input" placeholder="e.g. 25" min="0.1" step="0.1" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label form-label-required" for="surplusDate">Date of surplus</label>
+          <input type="date" id="surplusDate" name="date_of_surplus" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label form-label-required" for="expiryHours">Expiry (hours)</label>
+          <input type="number" id="expiryHours" name="expiry_time_hours" class="form-input" placeholder="e.g. 6" min="0.5" step="0.5" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label form-label-required" for="urgency">Urgency</label>
+        <select id="urgency" name="urgency" class="form-select" required>
+          <option value="">— Select urgency —</option>
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+          <option value="critical">Critical</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-success" id="surplusSubmitBtn" onclick="return BS.submitSurplus(event)">
+        <span id="surplusSubmitText">Log Surplus</span>
+        <span class="spinner" id="surplusSpinner" style="display:none;"></span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ── Surplus Log Table ──────────────────────────────────── -->
+<div class="card section-gap">
+  <div class="card-header">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    <h3>Surplus Log</h3>
+    <div class="card-header-actions">
+      <button class="btn btn-secondary btn-sm" onclick="BS.loadSurplusLog()">Refresh</button>
+    </div>
+  </div>
+  <div id="surplusLogContainer">
+    <div class="loading-block" id="surplusLogLoading">
+      <span class="spinner spinner-dark"></span> Loading surplus records…
+    </div>
+    <div class="empty-state" id="surplusLogEmpty" style="display:none;">
+      <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+      <div class="empty-state-title">No surplus logged yet</div>
+      <div class="empty-state-desc">Use the form above to log your first surplus item.</div>
+    </div>
+    <div class="table-wrap" id="surplusLogTable" style="display:none;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th><th>Food Item</th><th>Qty (kg)</th><th>Date</th><th>Expires in</th><th>Urgency</th><th>Status</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="surplusLogBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Set today's date as default
+  document.getElementById('surplusDate').valueAsDate = new Date();
+  // Load surplus log on page load
+  document.addEventListener('DOMContentLoaded', () => BS.loadSurplusLog());
+</script>
+{% endblock %}
