@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}Raw Material Exchange — BhojanSetu{% endblock %}
+{% block page_title %}Pre-Production Exchange{% endblock %}
+
+{% block content %}
+<div class="pending-notice">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+  Backend integration pending — exchange API routes not yet wired
+</div>
+
+<div class="page-header">
+  <h1>Pre-Production Raw Material Exchange</h1>
+  <p>Feature 3 — Share excess raw materials with nearby kitchens before food is cooked.</p>
+</div>
+
+<!-- ── Tabs ──────────────────────────────────────────────── -->
+<div class="tabs" id="exchangeTabs">
+  <button class="tab-btn active" data-tab="list-tab" onclick="BS.switchTab(this, 'list-tab')">
+    List a Material
+  </button>
+  <button class="tab-btn" data-tab="find-tab" onclick="BS.switchTab(this, 'find-tab')">
+    Find Materials
+  </button>
+  <button class="tab-btn" data-tab="my-tab" onclick="BS.switchTab(this, 'my-tab')">
+    My Exchanges
+  </button>
+</div>
+
+<!-- ── Tab 1: List a Material ─────────────────────────────── -->
+<div class="tab-panel active" id="list-tab">
+  <div class="card">
+    <div class="card-header">
+      <h3>List an Available Material</h3>
+    </div>
+    <div class="card-body">
+      <div class="alert alert-error" id="listingFormError" style="display:none;"></div>
+      <div class="alert alert-success" id="listingFormSuccess" style="display:none;"></div>
+
+      <form id="listingForm" novalidate onsubmit="return BS.submitListing(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label form-label-required" for="ingredientName">Ingredient</label>
+            <input type="text" id="ingredientName" name="ingredient" class="form-input" placeholder="e.g. Onions" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label form-label-required" for="listQty">Quantity</label>
+            <input type="number" id="listQty" name="quantity" class="form-input" placeholder="e.g. 20" min="0.1" step="0.1" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label form-label-required" for="listUnit">Unit</label>
+            <select id="listUnit" name="unit" class="form-select" required>
+              <option value="">— Select unit —</option>
+              <option value="kg">kg</option>
+              <option value="g">g</option>
+              <option value="litre">litre</option>
+              <option value="piece">piece</option>
+              <option value="pieces">pieces</option>
+              <option value="box">box</option>
+              <option value="bags">bags</option>
+              <option value="tray">tray</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label form-label-required" for="listDate">Date listed</label>
+            <input type="date" id="listDate" name="date_listed" class="form-input" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="useByDate">Use-by date (optional)</label>
+          <input type="date" id="useByDate" name="use_by_date" class="form-input">
+          <span class="form-hint">Leave blank if no expiry applies</span>
+        </div>
+        <button type="submit" class="btn btn-success" id="listingSubmitBtn">
+          <span id="listingSubmitText">List Material</span>
+          <span class="spinner" id="listingSpinner" style="display:none;"></span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- My listings table -->
+  <div class="card" style="margin-top:var(--space-6);">
+    <div class="card-header">
+      <h3>My Listings</h3>
+      <div class="card-header-actions">
+        <button class="btn btn-secondary btn-sm" onclick="BS.loadMyListings()">Refresh</button>
+      </div>
+    </div>
+    <div id="myListingsContainer">
+      <div class="loading-block" id="myListingsLoading">
+        <span class="spinner spinner-dark"></span> Loading…
+      </div>
+      <div class="empty-state" id="myListingsEmpty" style="display:none;">
+        <div class="empty-state-title">No listings yet</div>
+        <div class="empty-state-desc">Materials you list will appear here.</div>
+      </div>
+      <div class="alert alert-error" id="myListingsError" style="display:none; margin:1rem;"></div>
+      <div class="table-wrap" id="myListingsTable" style="display:none;">
+        <table class="data-table">
+          <thead>
+            <tr><th>Ingredient</th><th>Qty</th><th>Unit</th><th>Date Listed</th><th>Use-by</th><th>Status</th></tr>
+          </thead>
+          <tbody id="myListingsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Tab 2: Find Materials ──────────────────────────────── -->
+<div class="tab-panel" id="find-tab">
+  <div class="card">
+    <div class="card-header">
+      <h3>Find Available Materials</h3>
+    </div>
+    <div class="card-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label form-label-required" for="needIngredient">Ingredient needed</label>
+          <input type="text" id="needIngredient" class="form-input" placeholder="e.g. Tomatoes" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label form-label-required" for="needQty">Required quantity</label>
+          <input type="number" id="needQty" class="form-input" placeholder="e.g. 15" min="0.1" step="0.1" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label form-label-required" for="needDate">Required by date</label>
+          <input type="date" id="needDate" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="needUrgency">Urgency</label>
+          <select id="needUrgency" class="form-select">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+            <option value="critical">Critical</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="BS.findExchangeMatches()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Find Matches
+      </button>
+    </div>
+  </div>
+
+  <div class="loading-block" id="exchangeMatchLoading" style="display:none; margin-top:1rem;">
+    <span class="spinner spinner-dark"></span> Searching available listings…
+  </div>
+  <div class="alert alert-error" id="exchangeMatchError" style="display:none; margin-top:1rem;"></div>
+  <div class="empty-state" id="exchangeMatchEmpty" style="display:none; margin-top:1rem;">
+    <div class="empty-state-title">No matches found</div>
+    <div class="empty-state-desc">Try a different ingredient or reduce the required quantity.</div>
+  </div>
+  <div id="exchangeMatchResults" style="display:none; margin-top:1rem;">
+    <!-- match cards injected by JS -->
+  </div>
+</div>
+
+<!-- ── Tab 3: My Exchanges ────────────────────────────────── -->
+<div class="tab-panel" id="my-tab">
+  <div class="card">
+    <div class="card-header">
+      <h3>My Exchange Proposals</h3>
+      <div class="card-header-actions">
+        <button class="btn btn-secondary btn-sm" onclick="BS.loadMyExchanges()">Refresh</button>
+      </div>
+    </div>
+    <div id="myExchangesContainer">
+      <div class="loading-block" id="myExchangesLoading">
+        <span class="spinner spinner-dark"></span> Loading…
+      </div>
+      <div class="empty-state" id="myExchangesEmpty" style="display:none;">
+        <div class="empty-state-title">No exchange proposals yet</div>
+        <div class="empty-state-desc">Proposals you create or receive will appear here.</div>
+      </div>
+      <div class="alert alert-error" id="myExchangesError" style="display:none; margin:1rem;"></div>
+      <div class="table-wrap" id="myExchangesTable" style="display:none;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Ingredient</th><th>Offering Kitchen</th><th>Requesting Kitchen</th>
+              <th>Offered Qty</th><th>Requested Qty</th><th>Unit</th><th>Status</th><th>Created</th>
+            </tr>
+          </thead>
+          <tbody id="myExchangesBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('listDate').valueAsDate = new Date();
+    document.getElementById('needDate').valueAsDate = new Date();
+    BS.loadMyListings();
+    BS.loadMyExchanges();
+  });
+</script>
+{% endblock %}
