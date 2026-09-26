@@ -113,7 +113,7 @@ http://127.0.0.1:5000
 | Siddhi Panchal | AI Engineer | Demand forecasting model, surplus prediction engine |
 | Zeel Patel | AI Engineer | NGO matching engine, nutrition-aware matching, route optimization |
 | Seena Patel | AI Engineer | Production planning, sustainability analytics, ESG report generation, explainable AI |
-| Aadya | Frontend Developer | All UI templates, dashboards, client-side JavaScript |
+| Aadya Raval| Frontend Developer | All UI templates, dashboards, client-side JavaScript |
 | Nandani Patel | Data Engineer | Application data layer, dataset integration, validation utilities |
 
 
